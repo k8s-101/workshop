@@ -1,5 +1,5 @@
-[Readme](../README) > Docker and Kubernetes Workshop
-====================================================
+Docker and Kubernetes Workshop
+==============================
 
 Index
 -----

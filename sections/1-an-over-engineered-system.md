@@ -2,6 +2,8 @@
 =================================================================
 _In this section, we'll introduce the distributed system we'll be working with. This system might be familiar for those who participated in the [cloud-101 workshop](https://cx-cloud-101.github.io/speedtest-workshop/). Let's have a look at our system!_
 
+![Speed test system overview](images/speedtest-system-overview.jpg)
+
 So how does it work?
 --------------------
 TODO: General description of the system. Maybe an illustration showing how things connect. What is the system trying to "solve"?
