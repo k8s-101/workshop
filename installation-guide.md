@@ -1,5 +1,5 @@
-Cloud 101 Installation Guide
-============================
+k8s-101 Installation Guide
+==========================
 _To participate in the workshop, you'll need the following tools and accounts._
 
 General tools
