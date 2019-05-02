@@ -195,3 +195,7 @@ Starter med speedtest-logger, og tar resten etter det. Bruker følgende kommando
 ```shell
 &> docker run -it speed-test-logger:0.0.1
 ```
+
+What now?
+---------
+With a dockerized system, we're ready to [create Kubernetes cluster and deploy our application](3-kubernetes-and-container-orchestration).
