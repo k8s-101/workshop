@@ -1,4 +1,4 @@
 theme: jekyll-theme-cayman
 
-title: Cloud 101
-description: Create a system for logging internet speed at home on Azure and GCP
+title: k8s 101
+description: Logging internet speed with Docker and Kubernetes
