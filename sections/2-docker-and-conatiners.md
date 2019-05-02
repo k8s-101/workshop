@@ -1,5 +1,5 @@
-Docker, en konteinerteknologi
-=============================
+[Index](index) > Docker, en konteinerteknologi
+==============================================
 _Her kommer første del av workshopen, hvor deltakterne dockerizerer de ulike applikasjonene. teksten er foreløpig bare notater._
 
 ### For å skjønne hvordan Docker funker, må man først skjønne bygg og terminal

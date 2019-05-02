@@ -1,5 +1,5 @@
-ELK <3 Helm
-===========
+[Index](index) > ELK <3 Helm
+============================
 _In this section, we'll install ELK, and configure centralized logging of our speedtest system._
 
 Install ELK?

@@ -1,5 +1,5 @@
-The third party queue
-=====================
+[Index](index) > The third party queue
+======================================
 _In this section, we'll deploy a queue-solution made by a third party, to our cluster. Then we'll use this queue to trigger speedtest-logger from speedtest-scheduler._
 
 What queue? KubeMQ!

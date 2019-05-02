@@ -1,5 +1,5 @@
-Helm, the package manager for Kubernetes
-========================================
+[Index](index) > Helm, the package manager for Kubernetes
+=========================================================
 _In this section, we'll introduce Helm, and use it to install NGINX, so we better can contoll access to the services on our cluster._
 
 What is Helm?

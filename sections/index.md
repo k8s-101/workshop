@@ -10,3 +10,4 @@ Index
 5. [Helm, the package manager for Kubernetes?](5-helm-the-package-manager-for-kubernetes)
 6. [Helm <3 ELK](6-helm-and-elk)
 7. [Will the real database please install?](7-will-the-real-database-please-install)
+8. [Automating build and deploy](8-automating-build-and-deploy)
