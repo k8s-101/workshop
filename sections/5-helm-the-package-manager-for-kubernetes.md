@@ -1,6 +1,6 @@
 # [Index](index) > Helm, the package manager for Kubernetes
 
-_In this section, we'll introduce Helm, and use it to install NGINX, so we better can contoll access to the services on our cluster._
+_In this section, we'll introduce Helm, and use it to install NGINX, so we better can control access to the services on our cluster._
 
 ## Motivation
 
@@ -90,8 +90,8 @@ This will install the chart **stable/nginx-ingress**, create a release named **n
 
 1. Go to https://portal.azure.com/.
 2. Find the resource group for the cluster. (Not the one you specified, but the one automatically created my azure.)
-3. In this resource you will find some of type **Public ip address**. Go through then til you find the one for nginx-ingress. It is normaly tag with the name of the service, **nginx-nginx-ingress-controller**.
-4. In the left many hit **Configuration**, then type inn your **Dns name label**, and hit save.
+3. In this resource you will find some resources of type **Public ip address**. Go through then until you find the one for nginx-ingress. It is normally tagged with the name of the kubernetes service **nginx-nginx-ingress-controller**.
+4. In the left meny click **Configuration**, then type inn your **Dns name label**, and hit save.
 
 ![KubeMQ Dashboard](images/azure-portal-dns.png)
 
