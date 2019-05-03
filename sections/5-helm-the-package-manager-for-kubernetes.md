@@ -86,11 +86,11 @@ Happy helming!
 
 This will install the chart **stable/nginx-ingress**, create a release named **nginx** and override the default values with values.yaml.
 
-4. Lets get the external ip address, by running: `kubectl --namespace default get services nginx-nginx-ingress-controller`.
+4. Lets get the external ip address, by running: `kubectl get services nginx-nginx-ingress-controller`.
 
 ### Useful helm commands
 
-All helm commands is described [here](https://helm.sh/docs/helm/#helm)
+All helm commands is described [here](https://helm.sh/docs/helm/#helm), but some useful ones are listed below.
 
 - [helm install](hhttps://helm.sh/docs/helm/#helm-install) - install a helm chart.
 - [helm ls](https://helm.sh/docs/helm/#helm-status) - lists all helm releases
