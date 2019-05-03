@@ -131,12 +131,7 @@ helm upgrade --install elk stable/elastic-stack --values values.yaml --namespace
 
 This will create a release named elk in the namespace logz.
 
-3. Lets get the external ip address, by running: `kubectl get services`.
-4. Go to kibana by using the nginx-ingress external ip.
-
-```
-http://nginx-ingress-external-ip.com/kibana
-```
+3. Go to kibana: `http://yourhostname.westeurope.cloudapp.azure.com/kibana`
 
 ![Kibana](images/kibana.png)
 
