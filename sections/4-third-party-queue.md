@@ -10,7 +10,7 @@ At this point we could use whatever queue we want, but we have chosen to go for 
 
 There are many nice things about third-party applications, one of then is that many have deployed the same solution before. And in combination with docker, and easy sharing of docker-containers through container-registries, the deployment process is much easier then on a native setup. In this case the creators of KubeMQ have already created a docker image with all the necessary dependencies installed.
 
-There is a couple of ways we could deploy KubeMQ. One way is touse KubeMQ's ready made helm-chart, witch have all the recommended configuration for kubernetes. But since we are going to be looking at [Helm](https://helm.sh/) in a later section, we are going to do this the native way.
+There is a couple of ways we could deploy KubeMQ. One way is by using KubeMQ's ready made helm-chart, witch have all the recommended configuration for kubernetes. But since we are going to be looking at [Helm](https://helm.sh/) in a later section, we are going to do this the "native way".
 
 Don't despair, we have already made the configuration files for you. Do deploy KubeMQ, follow the steps below:
 
