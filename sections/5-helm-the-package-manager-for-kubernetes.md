@@ -101,7 +101,8 @@ This will install the chart **stable/nginx-ingress**, create a release named **n
 
 All helm commands is described [here](https://helm.sh/docs/helm/#helm), but some useful ones are listed below.
 
-- [helm install](hhttps://helm.sh/docs/helm/#helm-install) - install a helm chart.
+- [helm install](https://helm.sh/docs/helm/#helm-install) - install a helm chart.
+- [helm delete](https://helm.sh/docs/helm/#helm-delete) - delete a helm release.
 - [helm ls](https://helm.sh/docs/helm/#helm-status) - lists all helm releases
 - [helm status](https://helm.sh/docs/helm/#helm-status) - displays the status of the named release
 - [helm upgrade](https://helm.sh/docs/helm/#helm-upgrade) - upgrade a helm release
