@@ -4,7 +4,7 @@ _In this section, we'll learn a bit about Docker, the most famous example of con
 
 What is Docker?
 ---------------
-Docker is a is a system that allows us to pack and run computer programs in an virtual environment (containers), using operating system -level virtualization. This description is a bit abstruse, so let's look at some of the benefits this gives us.
+Docker is a is a system that allows us to pack and run computer programs in a virtual environment (containers), using operating system -level virtualization. This description is a bit abstruse, so let's look at some of the benefits this gives us.
 
 ### Programs packaged as virtual machines
 By packaging the software we're building, along with the virtual machine used to run them, we can more closely control that our software will run in a similar environment locally, in test and production. It's also easier to support different technologies in all environments, since you only have to be able to run docker containers, while the containers themselves can run a lot of different technologies.
@@ -30,13 +30,13 @@ _You might want to run `clear` to clean up your terminal at this point._
 
 The dockerization of speedtest-logger
 -------------------------------------
-Dockerizing an application, usually involves creating one or more Dockerfiles, that specify how your image should be built by docker. We'll now have a look at hov we can create Dockerfiles for the different applications in the speedtest system, but first we'll take a detour to the humble terminal.
+Dockerizing an application, usually involves creating one or more Dockerfiles, that specify how your image should be built by docker. We'll now have a look at how we can create Dockerfiles for the different applications in the speedtest system, but first we'll take a detour to the humble terminal.
 
 ### Before you can dockerize, you must first understand how you publish your application
-Diving into dockerizing your own applications can be very confusing, if you don't have a good grasp of how your program is compiled and packaged for production from the terminal. The reason for this, is that a Dockerfile mainly consists of us telling Docker to run a specific sequence of terminal commands inside the container/"virtual machine". It's easy to get lost if you cannot clearly identify the commands used for building your application from the commands use dby Docker. For this reason, we'll start with a quick refresher on how to build and pack speedtest-logger for production.
+Diving into dockerizing your own applications can be very confusing, if you don't have a good grasp of how your program is compiled and packaged for production from the terminal. The reason for this, is that a Dockerfile mainly consists of us telling Docker to run a specific sequence of terminal commands inside the container/"virtual machine". It's easy to get lost if you cannot clearly identify the commands used for building your application from the commands used by Docker. For this reason, we'll start with a quick refresher on how to build and pack speedtest-logger for production.
 
 ### .NET Core applications is published with dotnet publish
-Since .NET Core version 2.1, you can build an application with just `dotnet publish` from a folder containing a csproj-file for the application you want to publish. Previously, you wold have to run `dotnet restore` first, in order to install dependencies like third-party libraries, but since 2.1, `dotnet publish` will restore and build your code if needed. Navigate into `/speedtest-logger/SpeedTestLogger` and try it out!
+Since .NET Core version 2.1, you can build an application with just `dotnet publish` from a folder containing a csproj-file for the application you want to publish. Previously, you would have to run `dotnet restore` first, in order to install dependencies like third-party libraries, but since 2.1, `dotnet publish` will restore and build your code if needed. Navigate into `/speedtest-logger/SpeedTestLogger` and try it out!
 
 ```shell
 $> speedtest-logger/SpeedTestLogger> dotnet publish --output ./PublishedApp --configuration Release
@@ -101,7 +101,7 @@ WORKDIR /SpeedTestLogger
 
 This simply declares that we'll be working in a folder called `/SpeedTestLogger` inside the container, and creates this folder if it doesn't exist. Now we have a folder inside the container to move code into.
 
-_**A quick work about contexts:** Next we need to understand how Docker moved files into a container during `docker build`. When building the container, we give `docker build` a context from which it can copy files. The context is noting more special than a folder on your computer, the important thing is that Docker cannot copy any files that's not part of the context into the image. We'll revisit the context later, when we're ready to build the image, but for now it's enough to know that the context we'll use is the same as the speedtest-logger repository folder, i.e. `/speedtest-logger`._
+_**A quick work about contexts:** Next we need to understand how Docker moved files into a container during `docker build`. When building the container, we give `docker build` a context from which it can copy files. The context is nothing more special than a folder on your computer, the important thing is that Docker cannot copy any files that's not part of the context into the image. We'll revisit the context later, when we're ready to build the image, but for now it's enough to know that the context we'll use is the same as the speedtest-logger repository folder, i.e. `/speedtest-logger`._
 
 With the context out of the way, we can start writing out first `COPY`-statement.
 
@@ -263,7 +263,7 @@ Optimizing the Dockerfile
 As you probably noted, running `docker build` can take some time, but we can do several things to speed it up.
 
 ### Using layers to cache restored packages more efficiently
-Try running `docker build -f Dockerfile -t speed-test-logger:0.0.1 ./` again. Note how quick it was the second time? Whats going on?
+Try running `docker build -f Dockerfile -t speed-test-logger:0.0.1 ./` again. Note how quick it was the second time? What's going on?
 
 Docker will cache as many steps as possible in order to only re-build the relevant parts of the image. Since we didn't change any files in the build-context, nothing needed to change in the image, and the build was super quick. Let's add a newline or something else somewhere in our code and run `docker build` again.
 
@@ -326,12 +326,12 @@ Notice how we're no longer spending any time restoring unchanged packages? Succe
 _Whether or not we can benefit from improved caching usually depends on other factors as well. If we mostly run `docker build` on a build server, and it doesn't support Docker caching between builds, we won't see any improvements._
 
 ### Using .dockerignore to only move the files you really need into the build context
-Since Docker tracks changes in all files that are part of the context, and spends ime mowing them into the build context, we can improve speed by ignoring unused files in the build context. This can be done by more consciously selecting a build context, or by using a `.dockerignore`-file. The `.dockerignore`-file is similar to a `.gitignore`-file, in that you can specify file or folders -patterns that you want to ignore. We've already included a basic example that ignores `/bin` and `/obj` folders.
+Since Docker tracks changes in all files that are part of the context, and spends time moving them into the build context, we can improve speed by ignoring unused files in the build context. This can be done by more consciously selecting a build context, or by using a `.dockerignore`-file. The `.dockerignore`-file is similar to a `.gitignore`-file, in that you can specify file or folders -patterns that you want to ignore. We've already included a basic example that ignores `/bin` and `/obj` folders.
 
 
 Dockerizing speedtest-api and speedtest-web
 -------------------------------------------
-Now we leave you on your own to dockerize speedtest-api and speedtest-web. We've included finished Dockerfiles, and it's up to you if you want delete them and create your own, or use them as-is.
+Now we leave you on your own to dockerize speedtest-api and speedtest-web. We've included finished Dockerfiles, and it's up to you if you want to delete them and create your own, or use them as-is.
 
 When you're done, you should be able to build an image for speedtest-api with the following command:
 ```shell
