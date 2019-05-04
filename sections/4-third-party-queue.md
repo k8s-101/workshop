@@ -6,6 +6,11 @@ Remember speedtest-scheduler?
 -----------------------------
 Finally the time has come to do something with speedtest-scheduler! Before we can deploy it to Kubernetes, we'll need to build a Docker container, and push it to our private container registry.
 
+But first we will need to clone the source code for the scheduler. To do that, run:
+```shell
+$ git clone https://github.com/k8s-101/speedtest-scheduler.git
+```
+
 Navigate into `speedtest-scheduler` and build an image from the Dockerfile:
 ```shell
 $ speedtest-scheduler> docker build -f Dockerfile -t taeregistry.azurecr.io/speed-test-scheduler:0.0.1 ./
