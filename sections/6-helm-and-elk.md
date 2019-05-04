@@ -2,19 +2,13 @@
 
 _In this section, we'll install ELK, and configure centralized logging of our speedtest system._
 
-_NB. This section assume that helm is installed_
-
 ## Install ELK?
 
 Now let's install [ELK-stack](https://www.elastic.co/elk-stack) by using the readymade helm-chart [elastic-stack](https://github.com/helm/charts/tree/master/stable/elastic-stack). This chart is an umbrealla chart that enable us to use a lot of logging applications, but we are "only" going to be using filebeat, logstash, elasticsearch and kibana.
 
-0. If you dont have instaled nginx-ingress, run the following:
-
-```bash
-helm upgrade --install nginx stable/nginx-ingress --set rbac.create=false`
-```
-
 1. First we need de create the values.yaml file and configure which applications we want to use.
+
+_NB. Remember to update **kibana.ingress.hosts** to your hostnameThis section assume that helm is installed_
 
 ```yaml
 #values.yaml
@@ -73,6 +67,7 @@ kibana:
     enabled: true
     hosts:
       - /kibana/?(.*)
+      - yourhostname.westeurope.cloudapp.azure.com/kibana/?(.*) # <-- CHANGE HERE!
     annotations:
       kubernetes.io/ingress.class: nginx
       nginx.ingress.kubernetes.io/rewrite-target: /$1
