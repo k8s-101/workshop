@@ -1,6 +1,6 @@
 # [Index](index) > Helm, the package manager for Kubernetes
 
-_In this section, we'll introduce Helm, and use it to install NGINX, so we better can contoll access to the services on our cluster._
+_In this section, we'll introduce Helm, and use it to install NGINX, so we better can control access to the services on our cluster._
 
 ## Motivation
 
@@ -86,7 +86,16 @@ Happy helming!
 
 This will install the chart **stable/nginx-ingress**, create a release named **nginx** and override the default values with values.yaml.
 
-4. Lets get the external ip address, by running: `kubectl get services nginx-nginx-ingress-controller`.
+### Lets create our own hostname for the nginx-ingress
+
+1. Go to https://portal.azure.com/.
+2. Find the resource group for the cluster. (Not the one you specified, but the one automatically created my azure.)
+3. In this resource you will find some resources of type **Public ip address**. Go through then until you find the one for nginx-ingress. It is normally tagged with the name of the kubernetes service **nginx-nginx-ingress-controller**.
+4. In the left meny click **Configuration**, then type inn your **Dns name label**, and hit save.
+
+![KubeMQ Dashboard](images/azure-portal-dns.png)
+
+5. Now you can reach your nginx-ingress my http://yourname.westeurope.cloudapp.azure.com. (For now it wil give you a 404).
 
 ### Useful helm commands
 
@@ -105,56 +114,58 @@ Nginx-ingress in an [ingress-controllers](https://kubernetes.io/docs/concepts/se
 
 If you want to create an ingress, do the steps below, or jump to next section. We are going to use the nginx-ingress to host kibana in [section 6 - ELK](6-helm-and-elk).
 
-### Create an ingress to speedtest-api
+### Create an ingress to kubemq-dashboard
 
-In a production environment we should place all our applications behind a proxy (nginx-ingress), but for now lets just take speedtest-api as an example.
+In a production environment we should place all our applications behind a proxy (nginx-ingress), but for now lets just take kubemq-dashboard as an example.
 
-1. First we need to create a service of type NodePort. This enables clients inside the cluster to reach the speedtest-api.
+1. First we need to change the a service kubemq-dashboard the be of type NodePort. This enables clients inside the cluster to reach the kubemq-dashboard.
+2. Go to ./speedtest-scheduler/Deployment/KubeMQ.yaml and change:
 
 ```yaml
-#speedtest-api-service.yaml
-
 kind: Service
 apiVersion: v1
 metadata:
-  name: speedtest-web-service-node # The name to be used by other components to reach this service. eg. our ingress.
+  name: kubemq-dashboard
 spec:
-  type: NodePort
+  type: NodePort # <-- Change here!
   selector:
-    app: speedtest-api # The label of the component we want to reach
+    app: kubemq-dashboard
   ports:
     - protocol: TCP
       port: 80
 ```
 
-2. Then we can create an ingress that points to the service
+3. Run `kubectl apply -f ./speedtest-scheduler/Deployment/KubeMQ.yaml`
+4. Then we create an Ingress that points to the service. Remember to update host.
 
 ```yaml
-#speedtest-api-ingress.yaml
+#ingress.yaml
 
 apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
-  name: speedtest-api-ingress
+  name: kubemq-dashboard
   annotations:
     nginx.ingress.kubernetes.io/rewrite-target: /$1
-    kubernetes.io/ingress.class: nginx # This tells kubernetes that we want to use our nginx-ingress
+    kubernetes.io/ingress.class:
+      nginx # This tells kubernetes that we want to use our nginx-ingress
 
-    # Needed because of the swagger web page.
+      # Needed because of the web page don't have a basepath config.
     nginx.ingress.kubernetes.io/configuration-snippet: |
-      sub_filter '<head>' '<head> <base href="/api/$1">';
+      sub_filter '<base href="/">' '<base href="/kubemq/">';
 spec:
   rules:
-    - http:
+    - host: tardis.westeurope.cloudapp.azure.com # CHANGE HERE!
+      http:
         paths:
-          - path: /api/?(.*) # The path we want to use
+          - path: /kubemq/?(.*) # The path we want to use
             backend:
-              serviceName: speedtest-api-service-node # The service we want tha path to be redirected to
+              serviceName: kubemq-dashboard # The service we want tha path to be redirected to
               servicePort: 80
 ```
 
-3. Apply both files with kubectl apply -f filenames.yaml
-4. Go to https://external-ip/api/swagger/index.html
+5. Run `kubectl apply -f ./ingress.yaml`
+6. Go to https://yourhostname.westeurope.cloudapp.azure.com/kubemq
 
 ## What now?
 
