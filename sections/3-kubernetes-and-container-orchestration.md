@@ -37,13 +37,216 @@ Under _Authentication_:
 
 Leave everything as-is under _Scaling_, _Networking_, _Monitoring_ and _Tags_, and then create your cluster under _Review + create_.
 
-Creating the cluster will take quite a bit of time. Let's get started preparing speedtest-api for deployment on Kubernetes while we wait.
+Creating the cluster will take quite a bit of time (8 minutes when testing). Let's get started preparing speedtest-api for deployment on Kubernetes while we wait.
 
 
-Deploying speedtest-api to Kubernetes
--------------------------------------
+Preparing speedtest-api for deployment to Kubernetes
+----------------------------------------------------
 This time we'll start with speedtest-api for a change.
-TODO: Here we introduce Kubernetes YAML-files, and write a deployment and service for speedtest-api.
+
+Kubernetes is usually managed by writing and applying yaml-files, containing configuration of the different services, deployments, jobs, and so on, that you want to set up on Kubernetes. The configuration is written in a declarative style, where you specify what kind of system you want to set up, and not how to set up the system. Then Kubernetes will figure out how to set up the system so it matches your configuration.
+
+Since yaml-file editing is famously error-prone, due to the indentation-sensitive nature of yaml, combined with Kubernetes love for nested configuration sections, we've supplied you with all the yaml-files you'll need to complete this workshop. They're all located in the `/Deployment`-folders in the different repositories.
+
+### Deployments
+Let's start by having a look at the first section of kind _Deployment_ in `speedtest-api.yaml`.
+```yaml
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: speedtest-api
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: speedtest-api
+    spec:
+      imagePullSecrets:
+        - name: regcred
+      containers:
+        - name: speedtest-api
+          image: taeregistry.azurecr.io/speed-test-api:0.0.1
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 80
+          env:
+            - name: hostBasePath
+              value: /
+```
+
+A _Deployment_ is an object in Kubernetes that tries to keep a running container deployed. It the container isn't running, the _Deployment_ will try to start it. It the container crashes, the _Deployment_ will try to restart it, and so on.
+
+_Deployments_ have a name, and specify how many instances of the running container it should start, but more importantly, the _Deployment_ contains information about what image should be used to create the running containers, and what environment variables should be used when running the container.
+
+In our case, the image is specified as `taeregistry.azurecr.io/speed-test-api:0.0.1` (remember to update the registry name to your registry).
+
+### Pods
+To make matters a bit confusing, a running container in Kubernetes is called a _Pod_. (Strictly not the same, it's more like every containers are wrapped in a pod, but it's quite close for most purposes). Going forward we'll use _Pod_ to denote a running container in Kubernetes.
+
+### Services
+Now let's look at the _Service_ section:
+```yaml
+kind: Service
+apiVersion: v1
+metadata:
+  name: speedtest-api-service
+spec:
+  type: LoadBalancer
+  selector:
+    app: speedtest-api
+  ports:
+  - protocol: TCP
+    port: 80
+```
+
+The _Service_ is the Kubernetes object that we'll be able to use when we want to use speedtest-api. There're many kinds of services, but this one is set up as a _Load Balancer_, sending traffic to all pods deployed as _speedtest-api_.
+
+
+Logging in to your cluster
+--------------------------
+Is the cluster ready now? It so, then it's time to log on to our brand new Kubernetes cluster.
+
+### Installing Azure CLI and getting cluster credentials
+In order to get the credentials to connect to the cluster, we'll need to install [Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli?view=azure-cli-latest).
+
+Restart your terminal, and then you should be able to use the `az` command.
+```shell
+$> az
+
+     /\
+    /  \    _____   _ _  ___ _
+   / /\ \  |_  / | | | \'__/ _\
+  / ____ \  / /| |_| | | |  __/
+ /_/    \_\/___|\__,_|_|  \___|
+
+
+Welcome to the cool new Azure CLI!
+```
+
+Then we'll need to login to Azure using `az login`. This command will open a browser window, where we can log in using our Azure-account.
+
+Finally we can get the cluster credentials by using `az aks get-credentials` with the resource group and cluster name.
+```shell
+$> az aks get-credentials --resource-group k8s-101 --name taecluster
+Merged "taecluster" as current context in C:/Users/.../.kube/config
+```
+
+_If you're having problems at this point, it migth be that `az` is configured to use another subscription than the one used by k8s-101. Try [changing your active subscription](https://docs.microsoft.com/en-us/cli/azure/manage-azure-subscriptions-azure-cli?view=azure-cli-latest)._
+
+Now `kubectl` should be authorized to access the cluster:
+```shell
+$> kubectl get nodes
+NAME                       STATUS    ROLES     AGE       VERSION
+aks-agentpool-19818267-0   Ready     agent     32m       v1.12.7
+aks-agentpool-19818267-1   Ready     agent     32m       v1.12.7
+aks-agentpool-19818267-2   Ready     agent     32m       v1.12.7
+```
+
+### What is kubectl?
+`kubectl` is the command line tool used to manage a Kubernetes cluster. It does most things, from applying new configuration to retrieving information about the cluster.
+
+### Authorizing your cluster for access to the private container registry
+Remember the mysterious "imagePullSecrets: - name: regcred" section from `speedtest-api.yaml`? This is where we create `regcred`.
+
+Since we're using a private container registry, we'll need to create a _secret_ in our cluster with authentication information for accessing the registry. You can du this with the following command:
+
+```shell
+&> kubectl create secret docker-registry regcred --docker-server=taeregistry.azurecr.io --docker-username=taeregistry --docker-password={your password here} --docker-email=tae@computas.com
+```
+
+**Note:** Remember to use your registry _login address_, _username_ and _password_ when running the command above.
+
+![Admin user and password](images/taeregistry-admin-user.jpg)
+
+[Secrets](https://kubernetes.io/docs/concepts/configuration/secret/) is a solution for storing secret configuration information securely in Kubernetes. It can be used for any kind of secret, not just registry authentication information, and can be a good way to handle secrets in your own applications as well.
+
+### Opening the Docker dashboard
+To get an overview of your cluster, you can open the Kubernetes dashboard. First start a proxy to your cluster by running `kubectl proxy`.
+```shell
+$> kubectl proxy
+Starting to serve on 127.0.0.1:8001
+```
+
+Now you should be able to visit the [Kubernetes dashboard](http://localhost:8001/api/v1/namespaces/kube-system/services/kubernetes-dashboard/proxy) in your browser.
+
+![Kubernetes dashboard](images/k8s-empty-dashboard.jpg)
+
+At the moment there's nothing interesting there, after all we haven't deployed anything to the cluster yet, but we'll come back to this page later, so keep the terminal with `kubectl proxy` running.
+
+Deploying speedtest-api
+-----------------------
+Now that we've got an connection to our cluster, it's time to try to deploy speedtest-api. Move into the `/speedtest-api`-folder, and apply `speedtest-api.yaml` with the following command.
+
+```shell
+$> speedtest-api> kubectl apply -f Deployment/speedtest-api.yaml
+deployment.apps/speedtest-api created
+service/speedtest-api-service created
+```
+
+And just like that, both the deployment and the service was created. Let's have a look at them in the Kubernetes dashboard.
+
+Navigate to the Deployments section in the left menu, and verify that you have a deployment named speedtest-api.
+
+![Speedtest-api Pod](images/speedtest-api-deployment.jpg)
+
+The deployment should have created a running pod.
+
+![Speedtest-api Pod](images/speedtest-api-pod.jpg)
+
+You should also have a running service under _Services_ in the left menu.
+
+![Speedtest-api Service](images/speedtest-api-service.jpg)
+
+Note that speedtest-api-service has been assigned an external endpoint. Open it and navigate to `/swagger`. You should now see swagger UI for the instance of speedtest-api running on the cluster.
+
+![Swagger on cluster](images/swagger-on-cluster.jpg)
+
+Deploying speedtest-web
+-----------------------
+Let's deploy speedtest-web as well. The kubernetes configuration is very similar to speedtest-api, and is located in `/speedtest-web/Deployment/speedtest-web.yaml`.
+
+This time we only have to look at the _Service_:
+```yaml
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: speedtest-web
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: speedtest-web
+    spec:
+      imagePullSecrets:
+        - name: regcred
+      containers:
+        - name: speedtest-web
+          image: taeregistry.azurecr.io/speed-test-web:0.0.1
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 80
+          env: 
+            - name: SpeedTestApiBase
+              value: http://13.81.246.53
+```
+
+Again we'll need to update the image with the correct container registry. We also need to configure the webpage to use the address of speedtest-api on the cluster as SpeedTestApiBase, i.e. you'll need to change `http://13.81.246.53` to the external address of your speedtest-api-service.
+
+Save the updated `speedtest-web.yaml` and apply it to kubernetes:
+```shell
+$ speedtest-web> kubectl apply -f Deployment/speedtest-web.yaml
+deployment.apps/speedtest-web created
+service/speedtest-web-service created
+```
+
+Go to the Kubernetes dashboard, and again verify that a deployment, pod and service was created for speedtest-web. Open the external endpoint of the speedtest-web-service, and navigate to `/index.html`.
+
+![Web on cluster](images/web-on-cluster.jpg)
+
+Just as with speedtest-api, we're now viewing the version of speedtest-web deployed to kubernetes. The graphs look a bit empty this time, so let's finally deploy speedtest-logger so we can get some speed tests from the cluster!
+
 
 Running speedtest-logger as a job
 ---------------------------------

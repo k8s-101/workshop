@@ -206,7 +206,7 @@ ENTRYPOINT ["dotnet", "SpeedTestLogger.dll"]
 
 Navigate to the `speedtest-logger` folder and run `docker build` with the following arguments:
 ```shell
-&> docker build -f Dockerfile -t speed-test-logger:0.0.1 ./
+$> docker build -f Dockerfile -t speed-test-logger:0.0.1 ./
 Sending build context to Docker daemon  328.2kB
 Step 1/9 : FROM microsoft/dotnet:2.1-sdk AS build-stage
  ---> d81b18feaa95
@@ -249,7 +249,7 @@ Successfully tagged speed-test-logger:0.0.1
 
 Let's test our new image with `docker run`:
 ```shell
-&> docker run -it speed-test-logger:0.0.1
+$> docker run -it speed-test-logger:0.0.1
 Starting SpeedTestLogger
 Finding best test servers
 Testing download speed
@@ -303,7 +303,7 @@ ENTRYPOINT ["dotnet", "SpeedTestLogger.dll"]
 ```
 
 ```shell
-& speedtest-logger> docker build -f Dockerfile -t speed-test-logger:0.0.1 ./
+$ speedtest-logger> docker build -f Dockerfile -t speed-test-logger:0.0.1 ./
 ...
 Step 4/11 : RUN dotnet restore
  ---> Using cache
@@ -335,12 +335,12 @@ Now we leave you on your own to dockerize speedtest-api and speedtest-web. We've
 
 When you're done, you should be able to build an image for speedtest-api with the following command:
 ```shell
-& speedtest-api> docker build -f Dockerfile -t speed-test-api:0.0.1 ./
+$ speedtest-api> docker build -f Dockerfile -t speed-test-api:0.0.1 ./
 ```
 
 And you should be able to build an image for speedtest-web with this command:
 ```shell
-& speedtest-web> docker build -f Dockerfile -t speed-test-web:0.0.1 ./
+$ speedtest-web> docker build -f Dockerfile -t speed-test-web:0.0.1 ./
 ```
 
 

@@ -37,7 +37,7 @@ You'll also need to enable _Admin user_, and note your username and password und
 
 Now you should be able to login to your container registry using `docker login`.
 ```shell
-&> docker login taeregistry.azurecr.io
+$> docker login taeregistry.azurecr.io
 Username: taeregistry
 Password:
 ...
@@ -50,18 +50,18 @@ Pushing speed-test-logger to the registry
 -----------------------------------------------
 Before we push the image `speed-test-logger:0.0.1` to the registry, we need to tag it with a fully qualified path to our new registry. That means we want to tag it along the lines of `taeregistry.azurecr.io/speed-test-logger:0.0.1`. One way of doing this would be to re-building the image with the fully qualified tag:
 ```shell
-& speedtest-logger> docker build -f Dockerfile -t taeregistry.azurecr.io/speed-test-logger:0.0.1 ./
+$ speedtest-logger> docker build -f Dockerfile -t taeregistry.azurecr.io/speed-test-logger:0.0.1 ./
 ```
 * `-t taeregistry.azurecr.io/speed-test-logger:0.0.1` tags the image when building.
 
 An slightly easier alternative is just to tag the already build images using `docker tag`:
 ```shell
-&> docker tag speed-test-logger:0.0.1 taeregistry.azurecr.io/speed-test-logger:0.0.1
+$> docker tag speed-test-logger:0.0.1 taeregistry.azurecr.io/speed-test-logger:0.0.1
 ```
 
 With the tagging done, we can move on to pushing `taeregistry.azurecr.io/speed-test-logger:0.0.1`:
 ```shell
-&> docker push taeregistry.azurecr.io/speed-test-logger:0.0.1
+$> docker push taeregistry.azurecr.io/speed-test-logger:0.0.1
 The push refers to repository [taeregistry.azurecr.io/speed-test-logger]
 60de89799169: Pushed
 5e5f959b8e85: Pushed
