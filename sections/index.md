@@ -10,5 +10,3 @@ Index
 5. [The third-party queue](4-third-party-queue)
 6. [Helm, the package manager for Kubernetes?](5-helm-the-package-manager-for-kubernetes)
 7. [Helm <3 ELK](6-helm-and-elk)
-8. [Will the real database please install?](7-will-the-real-database-please-install)
-9. [Automating build and deploy](8-automating-build-and-deploy)

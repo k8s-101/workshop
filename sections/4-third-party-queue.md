@@ -1,13 +1,28 @@
-# [Index](index) > The third party queue
-
+[Index](index) > The third party queue
+======================================
 _In this section, we'll deploy a queue-solution made by a third party, to our cluster. Then we'll use this queue to trigger speedtest-logger from speedtest-scheduler._
 
-## What queue? KubeMQ!
+Remember speedtest-scheduler?
+-----------------------------
+Finally the time has come to do something with speedtest-scheduler! Before we can deploy it to Kubernetes, we'll need to build a Docker container, and push it to our private container registry.
 
+Navigate into `speedtest-scheduler` and build an image from the Dockerfile:
+```shell
+$ speedtest-scheduler> docker build -f Dockerfile -t taeregistry.azurecr.io/speed-test-scheduler:0.0.1 ./
+```
+
+This time we're tagging the image with the registry address when we build the container, so make sure you use the address of your registry.
+
+Then we have to push the image:
+```shell
+$> docker push taeregistry.azurecr.io/speed-test-scheduler:0.0.1
+```
+
+What queue? KubeMQ!
+-------------------
 At this point we could use whatever queue we want, but we have chosen to go for [KubeMQ](https://kubemq.io/). KubeMQ is a easy to use real-time scalable message queue, designed to support high volume messaging with low latency and efficient memory usage. It supports multiple messaging patterns, including real-time pub/sub, witch is what we are going to be using.
 
 ### Deploy KubeMQ and KubeMQ-dashboard
-
 There are many nice things about third-party applications, one of then is that many have deployed the same solution before. And in combination with docker, and easy sharing of docker-containers through container-registries, the deployment process is much easier then on a native setup. In this case the creators of KubeMQ have already created a docker image with all the necessary dependencies installed.
 
 There is a couple of ways we could deploy KubeMQ. One way is by using KubeMQ's ready made helm-chart, witch have all the recommended configuration for kubernetes. But since we are going to be looking at [Helm](https://helm.sh/) in a later section, we are going to do this the "native way".
@@ -175,8 +190,9 @@ And since we want to be able to access the dashboard from outside the cluster, w
 3. Deploy KubeMQ with the following command: `kubectl apply -f ./kubeMQ.yaml`;
 
 ```bash
-$ kubectl apply -f ./kubeMQ.yaml
-statefulset.apps/kubemq-cluster configured
+$ speedtest-scheduler/Deployment> kubectl apply -f ./kubeMQ.yaml
+statefulset.apps/kubemq-cluster created
+service/kubemq-cluster-node created
 service/kubemq-cluster created
 deployment.apps/kubemq-dashboard-deployment created
 service/kubemq-dashboard created
@@ -184,10 +200,10 @@ service/kubemq-dashboard created
 
 Since we don't have any ingress-controller/proxy (eg. nginx-ingress) (this is a subject in a later section), we have to update the kubeMQ.yaml with some ip addresses.
 
-4. First get the **external ip** for kubemq-cluster service by going to the dashboard or by running the following: `kubectl apply -f ./kubeMQ.yaml`
+4. First get the **external ip** for kubemq-cluster service by going to the dashboard, as we did in the previous section, or by running the following: `kubectl get service kubemq-cluster`.
 
 ```bash
-$ kubectl apply -f ./kubeMQ.yaml
+$> kubectl get service kubemq-cluster
 NAME             TYPE           CLUSTER-IP    EXTERNAL-IP     PORT(S)                                                        AGE
 kubemq-cluster   LoadBalancer   10.0.88.109   51.144.52.132   8080:32419/TCP,50000:30985/TCP,5228:32465/TCP,9090:30551/TCP   20m
 ```
@@ -216,17 +232,17 @@ containers:
 6. Update the KubeMQ by running: `kubectl apply -f ./kubeMQ.yaml` again.
 
 ```bash
-$ kubectl apply -f ./kubeMQ.yaml
+$ speedtest-scheduler/Deployment> kubectl apply -f ./kubeMQ.yaml
 statefulset.apps/kubemq-cluster configured
 service/kubemq-cluster unchanged
 deployment.apps/kubemq-dashboard-deployment configured
 service/kubemq-dashboard unchanged
 ```
 
-7. Now we only need to find on which external ip the KubeMQ-dashboard is running at: `kubectl apply -f ./kubeMQ.yaml`
+7. Now we only need to find on which external ip the KubeMQ-dashboard is running at: `kubectl get service kubemq-dashboard`
 
 ```bash
-$ kubectl apply -f ./kubeMQ.yaml
+$> kubectl get service kubemq-dashboard
 NAME               TYPE           CLUSTER-IP     EXTERNAL-IP    PORT(S)        AGE
 kubemq-dashboard   LoadBalancer   10.0.168.217   13.69.25.137   80:30356/TCP   3m
 
@@ -261,7 +277,7 @@ schedule: "0 * * * *" # scheduled to run every hour.
             - name: regcred # Update this with your secret name
           containers:
             - name: speedtest-scheduler
-              image: k8s101registry.azurecr.io/speedtest-scheduler:latest # Updated this with your image tag.
+              image: taeregistry.azurecr.io/speed-test-scheduler:0.0.1 # Updated this with your image tag.
               env:
                 - name: KubeMQ_Channel
                   value: speedtest
@@ -271,14 +287,14 @@ schedule: "0 * * * *" # scheduled to run every hour.
 3. Deploy speedtest-scheduler with: `kubectl apply -f speedtest-scheduler.yaml`.
 
 ```bash
-> kubectl apply -f speedtest-scheduler.yaml
-cronjob.batch/speedtest-scheduler-cronjob configured
+$ speedtest-scheduler/Deployment> kubectl apply -f speedtest-scheduler.yaml
+cronjob.batch/speedtest-scheduler-cronjob created
 ```
 
 4. This job is configured to run every hour, but you can trigger a run manually from the kubernetes-dashboard or with: `kubectl create job --from=cronjob/speedtest-scheduler speedtest-scheduler-manual-001`
 
 ```bash
-$ kubectl create job --from=cronjob/speedtest-scheduler speedtest-scheduler-manual-001
+$> kubectl create job --from=cronjob/speedtest-scheduler speedtest-scheduler-manual-001
 job.batch/speedtest-scheduler-manual-001 created
 ```
 
@@ -311,12 +327,12 @@ spec:
         - name: regcred
       containers:
         - name: speedtest-logger
-          image: k8s101registry.azurecr.io/speedtest-logger:latest
+          image: taeregistry.azurecr.io/speed-test-logger:0.0.1
           env:
             - name: singleRun
               value: 'false' # <-- Change here!
             - name: speedTestApiUrl
-              value: http://speedtest-api-service # "speedtest-api-service" should be the name of the service pointing to our speedtest-api.
+              value: http://13.81.246.53
             - name: KubeMQ_ServerAddress
               value: kubemq-cluster:50000 # "kubemq-cluster" should be the name of the service pointeing to our KubeMq-queue.
             - name: KubeMQ_Channel
@@ -327,14 +343,14 @@ spec:
 3. Update the job on kubernetes with: `kubectl apply -f speedtest-logger.yaml`
 
 ```bash
-$ kubectl apply -f speedtest-logger.yaml
+$ speedtest-logger/deployment> kubectl apply -f speedtest-logger.yaml
 job.batch/speedtest-logger created
 ```
 
 4. The queue does not store the events, so we need to send a new one:
 
 ```bash
-$ kubectl create job --from=cronjob/speedtest-scheduler speedtest-scheduler-manual-002
+$> kubectl create job --from=cronjob/speedtest-scheduler speedtest-scheduler-manual-002
 job.batch/speedtest-scheduler-manual-002 created
 ```
 

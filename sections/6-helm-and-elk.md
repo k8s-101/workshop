@@ -145,5 +145,4 @@ This will create a release named elk in the namespace logz.
 ![Kibana](images/kibana-logs.png)
 
 ## What now?
-
-[real database](7-will-the-real-database-please-install).
+If you have gotten this far, contact Teodor and Simen for more ideas to play with on your cluster.

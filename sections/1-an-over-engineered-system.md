@@ -68,7 +68,7 @@ _What's the deal with "Application started" and "Content root path"? speedtest-l
 2. Navigate into the `/speedtest-api/SpeedTestApi`-folder, and run the solution with `dotnet run`.
 
 ```shell
-&> speedtest-api/SpeedTestApi> dotnet run
+$> speedtest-api/SpeedTestApi> dotnet run
 Hosting environment: Development
 Content root path: .../speedtest-api/SpeedTestApi
 Now listening on: https://localhost:5001
@@ -103,7 +103,7 @@ Let's keep speedtest-api running, while we get speedtest-web up and running in a
 2. Navigate into the `/speedtest-web/SpeedTestWeb`-folder, and run the solution with `dotnet run`.
 
 ```shell
-&> speedtest-api/SpeedTestApi> dotnet run
+$> speedtest-api/SpeedTestApi> dotnet run
 Hosting environment: Development
 Content root path: .../speedtest-api/SpeedTestApi
 Now listening on: https://localhost:5051
