@@ -250,11 +250,59 @@ Just as with speedtest-api, we're now viewing the version of speedtest-web deplo
 
 Running speedtest-logger as a job
 ---------------------------------
-TODO: Less introduction, more faster. At this point we probably inspect the logs.
+Both speedtest-api and speedtest-web has been deployed as a _Deployment_ and _Service_, but this time we'll deploy speedtest-logger as a _Job_.
 
-Deploying speedtest-web
------------------------
-TODO: Very fast, just the same as speedtest-api.
+_Jobs_ are an Kubernetes object that is applied, and then runs once. They're useful for batch-processing jobs, database migrations, and most programs that you run once as a console application. Although this will soon change, we'll start out by deploying speedtest-logger as a _Job_.
+
+```yaml
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: speedtest-logger
+spec:
+  template:
+    metadata:
+      labels:
+        app: speedtest-logger
+    spec:
+      imagePullSecrets:
+        - name: regcred 
+      containers:
+      - name: speedtest-logger
+        image: taeregistry.azurecr.io/speed-test-logger:0.0.1
+        env:
+          - name: singleRun
+            value: "true"
+          - name: speedTestApiUrl
+            value: http://13.81.246.53
+          - name: KubeMQ_ServerAddress
+            value: kubemq-cluster-node:50000
+          - name: KubeMQ_Channel
+            value: speedtest
+      restartPolicy: OnFailure
+```
+
+This time, in addition to updating the container registry, we'll ensure that `singleRun` is configured to `true`, and that the value for `speedTestApiUrl` is the same as the one we used in `speedtest-web.yaml`. For now we can ignore the KubeMQ-related values, they'll be used in the next section. Then we're ready to apply the job.
+
+```shell
+$ speedtest-logger> kubectl apply -f .\Deployment\speedtest-logger.yaml
+job.batch/speedtest-logger created
+```
+
+Let's see if speedtest-logger ran as expected. Open _Jobs_ from the left menu.
+
+![Logger on cluster](images/logger-on-cluster.jpg)
+
+We can also view the logs from speedtest-logger by clicking on the horizontal bars to the far left of the job.
+
+![Logger logs on cluster](images/logger-logs-on-cluster.jpg)
+
+By now you should have a single speed test visible in speedtest-web, and swagger UI for speedtest-api.
+
+### What if I want to run Jobs again?
+Kubernetes Jobs can only be applied once. If you want to re-run the same job, you first have to delete it from the cluster. This can be done from the Kubernetes dashboard.
+
+Alternatively, you can continue to the next sections, where we'll run speedtest-logger a lot more.
 
 What now?
 ---------
