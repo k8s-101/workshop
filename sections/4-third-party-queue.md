@@ -303,21 +303,21 @@ job.batch/speedtest-scheduler-manual-001 created
 
 ![KubeMQ Dashboard](images/kubemq-dashboard-event-sent.png)
 
-## Configuring speedtest-logger to read events from the queue
+Configuring speedtest-logger to read events from the queue
+----------------------------------------------------------
+The speedtest-logger has a hidden feature, it can run as a service if the config variable `singleRun` is set to false. In this mode speedtest-logger will connect to an KubeMQ-instance, and listen for events from the scheduler.
 
-Now it's time to make speedtest-logger read from the queue.
+Since we're no longer going to deploy something that is a single run job, creating a Kubernetes _Job_ is the wrong choice. Instead speedtest-logger is acting like a service, along the lines of speedtest-api, so we should instead use a _Deployment_. In addition we'll need to configure the KubeMQ-variables we ignored previously.
 
-1. Navigate into the `/speedtest-logger/Deployment`-folder.
-2. Update the `speedtest-logger.yaml` by setting the environment variable singleRun to false
+Let's have a look at the _Deployment_ in `speedtest-logger/Deployment/speedtest-logger-deployment.yaml`.
 
 ```yaml
-# speedtest-logger
-
-apiVersion: batch/v1
-kind: Job
+apiVersion: apps/v1beta1
+kind: Deployment
 metadata:
   name: speedtest-logger
 spec:
+  replicas: 1
   template:
     metadata:
       labels:
@@ -327,36 +327,44 @@ spec:
         - name: regcred
       containers:
         - name: speedtest-logger
-          image: taeregistry.azurecr.io/speed-test-logger:0.0.1
+          image: taeregistry.azurecr.io/speed-test-logger:0.0.1 # Remember to update this to use your container registry address
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 80
           env:
             - name: singleRun
-              value: 'false' # <-- Change here!
+              value: "false"
             - name: speedTestApiUrl
-              value: http://13.81.246.53
+              value: http://13.81.246.53 # Remember to update this to use your external
             - name: KubeMQ_ServerAddress
-              value: kubemq-cluster:50000 # "kubemq-cluster" should be the name of the service pointeing to our KubeMq-queue.
+              value: kubemq-cluster-node:50000 # Note we use the same service her as in the speedtest-scheduler
             - name: KubeMQ_Channel
               value: speedtest
-      restartPolicy: OnFailure
 ```
 
-3. Update the job on kubernetes with: `kubectl apply -f speedtest-logger.yaml`
+The structure of this deployment is very similar to the one used by speedtest-api and speedtest-web. The main difference is that we won't create a service for the speedtest-logger, because we only have one instance of the logger, and we don't need to access it from outside the cluster.
+
+Now we can deploy the new speedtest-logger deployment with: `kubectl apply -f speedtest-logger-deployment.yaml`:
 
 ```bash
-$ speedtest-logger/deployment> kubectl apply -f speedtest-logger.yaml
-job.batch/speedtest-logger created
+$ speedtest-logger/Deployment> kubectl apply -f speedtest-logger-deployment.yaml
+deployment "speedtest-logger" created
 ```
 
-4. The queue does not store the events, so we need to send a new one:
+You can visit the Kubernetes dashboard to view the new Deployment, and while you're there, you can delete the old _Job_ for speedtest-logger.
+
+KubeMQ is configured to not remember any messages, so in order to trigger speedtest-logger, we'll need to run speedtest-scheduler again:
 
 ```bash
 $> kubectl create job --from=cronjob/speedtest-scheduler speedtest-scheduler-manual-002
 job.batch/speedtest-scheduler-manual-002 created
 ```
 
-5. To check if the event was sent to the queue, and that the logger has received it, go to the KubeMQ-dashboard from the previous section.
+Let's check if the event was sent to the queue, and that the logger has received it. Open the KubeMQ-dashboard from the previous section and have a look.
 
 ![KubeMQ Dashboard](images/kubemq-dashboard-sent-received.png)
+
+You can also have a look at speedtest-web and see if you have a new speedtest result.
 
 ## What now?
 
