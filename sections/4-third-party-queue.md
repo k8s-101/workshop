@@ -8,7 +8,7 @@ Finally the time has come to do something with speedtest-scheduler! Before we ca
 
 But first we will need to clone the source code for the scheduler. To do that, run:
 ```shell
-$ git clone https://github.com/k8s-101/speedtest-scheduler.git
+$> git clone https://github.com/k8s-101/speedtest-scheduler.git
 ```
 
 Navigate into `speedtest-scheduler` and build an image from the Dockerfile:
