@@ -117,8 +117,8 @@ Application started. Press Ctrl+C to shut down.
 _Wait, where did all the data in the graphs come from? When started locally, speedtest-api will populate it's database with some dummy-data, so we have something to display in the webpage. This won't happen if you run the application in production-mode, i.e. with the environment-variable `ASPNETCORE_ENVIRONMENT` set to `true`._
 
 ### speedtest-scheduler
-We'll skip speedtest-scheduler for now, since running it requires setting up a third-party queue solution, and we're to lazy to do that on our local computer. For now you can pretend like it doesn't exist, but fear not, we'll return to speedtest-scheduler in part 4, [the third party queue](4-third-party-queue).
+We'll skip speedtest-scheduler for now, since running it requires setting up a third-party queue solution, and we're too lazy to do that on our local computer. For now you can pretend like it doesn't exist, but fear not, we'll return to speedtest-scheduler in part 4, [the third party queue](4-third-party-queue).
 
 What now?
 ---------
-Now that we have familiarized ourselves with the speedtest system, lets continue by dockerizing the system in the [next sections](2-docker-and-conatiners).
+Now that we have familiarized ourselves with the speedtest system, let's continue by dockerizing the system in the [next sections](2-docker-and-conatiners).
