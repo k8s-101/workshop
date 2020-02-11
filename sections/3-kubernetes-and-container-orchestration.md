@@ -73,7 +73,7 @@ spec:
         - name: regcred
       containers:
         - name: speedtest-api
-          image: taeregistry.azurecr.io/speed-test-api:0.0.1
+          image: k8s101registry.azurecr.io/speed-test-api:0.0.1
           imagePullPolicy: Always
           ports:
             - containerPort: 80
@@ -86,7 +86,7 @@ A _Deployment_ is an object in Kubernetes that tries to keep a running container
 
 _Deployments_ have a name, and specify how many instances of the running container it should start, but more importantly, the _Deployment_ contains information about what image should be used to create the running containers, and what environment variables should be used when running the container.
 
-In our case, the image is specified as `taeregistry.azurecr.io/speed-test-api:0.0.1` (remember to update the registry name to your registry).
+In our case, the image is specified as `k8s101registry.azurecr.io/speed-test-api:0.0.1` (remember to update the registry name to your registry).
 
 ### Pods
 
@@ -167,12 +167,12 @@ Remember the mysterious "imagePullSecrets: - name: regcred" section from `speedt
 Since we're using a private container registry, we'll need to create a _secret_ in our cluster with authentication information for accessing the registry. You can du this with the following command:
 
 ```shell
-&> kubectl create secret docker-registry regcred --docker-server=taeregistry.azurecr.io --docker-username=taeregistry --docker-password={your password here} --docker-email=tae@computas.com
+&> kubectl create secret docker-registry regcred --docker-server=k8s101registry.azurecr.io --docker-username=k8s101registry --docker-password={your password here} --docker-email=tae@computas.com
 ```
 
 **Note:** Remember to use your registry _login address_, _username_ and _password_ when running the command above.
 
-![Admin user and password](images/taeregistry-admin-user.jpg)
+![Admin user and password](images/k8s101registry-admin-user.jpg)
 
 [Secrets](https://kubernetes.io/docs/concepts/configuration/secret/) is a solution for storing secret configuration information securely in Kubernetes. It can be used for any kind of secret, not just registry authentication information, and can be a good way to handle secrets in your own applications as well.
 
@@ -248,7 +248,7 @@ spec:
         - name: regcred
       containers:
         - name: speedtest-web
-          image: taeregistry.azurecr.io/speed-test-web:0.0.1
+          image: k8s101registry.azurecr.io/speed-test-web:0.0.1
           imagePullPolicy: Always
           ports:
             - containerPort: 80
@@ -294,7 +294,7 @@ spec:
         - name: regcred
       containers:
         - name: speedtest-logger
-          image: taeregistry.azurecr.io/speed-test-logger:0.0.1
+          image: k8s101registry.azurecr.io/speed-test-logger:0.0.1
           env:
             - name: singleRun
               value: 'true'

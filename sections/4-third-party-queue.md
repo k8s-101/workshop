@@ -15,7 +15,7 @@ $> git clone https://github.com/k8s-101/speedtest-scheduler.git
 Navigate into `speedtest-scheduler` and build an image from the Dockerfile:
 
 ```shell
-$ speedtest-scheduler> docker build -f Dockerfile -t taeregistry.azurecr.io/speed-test-scheduler:0.0.1 ./
+$ speedtest-scheduler> docker build -f Dockerfile -t k8s101registry.azurecr.io/speed-test-scheduler:0.0.1 ./
 ```
 
 This time we're tagging the image with the registry address when we build the container, so make sure you use the address of your registry.
@@ -23,7 +23,7 @@ This time we're tagging the image with the registry address when we build the co
 Then we have to push the image:
 
 ```shell
-$> docker push taeregistry.azurecr.io/speed-test-scheduler:0.0.1
+$> docker push k8s101registry.azurecr.io/speed-test-scheduler:0.0.1
 ```
 
 ## What queue? KubeMQ!
@@ -286,7 +286,7 @@ schedule: "0 * * * *" # scheduled to run every hour.
             - name: regcred # Update this with your secret name
           containers:
             - name: speedtest-scheduler
-              image: taeregistry.azurecr.io/speed-test-scheduler:0.0.1 # Updated this with your image tag.
+              image: k8s101registry.azurecr.io/speed-test-scheduler:0.0.1 # Updated this with your image tag.
               env:
                 - name: KubeMQ_Channel
                   value: speedtest
@@ -336,7 +336,7 @@ spec:
         - name: regcred
       containers:
         - name: speedtest-logger
-          image: taeregistry.azurecr.io/speed-test-logger:0.0.1 # Remember to update this to use your container registry address
+          image: k8s101registry.azurecr.io/speed-test-logger:0.0.1 # Remember to update this to use your container registry address
           imagePullPolicy: Always
           ports:
             - containerPort: 80
