@@ -1,17 +1,19 @@
-[Index](index) > The third party queue
-======================================
+# [Index](index) > The third party queue
+
 _In this section, we'll deploy a queue-solution made by a third party, to our cluster. Then we'll use this queue to trigger speedtest-logger from speedtest-scheduler._
 
-Remember speedtest-scheduler?
------------------------------
+## Remember speedtest-scheduler?
+
 Finally the time has come to do something with speedtest-scheduler! Before we can deploy it to Kubernetes, we'll need to build a Docker container, and push it to our private container registry.
 
 But first we will need to clone the source code for the scheduler. To do that, run:
+
 ```shell
 $> git clone https://github.com/k8s-101/speedtest-scheduler.git
 ```
 
 Navigate into `speedtest-scheduler` and build an image from the Dockerfile:
+
 ```shell
 $ speedtest-scheduler> docker build -f Dockerfile -t taeregistry.azurecr.io/speed-test-scheduler:0.0.1 ./
 ```
@@ -19,15 +21,17 @@ $ speedtest-scheduler> docker build -f Dockerfile -t taeregistry.azurecr.io/spee
 This time we're tagging the image with the registry address when we build the container, so make sure you use the address of your registry.
 
 Then we have to push the image:
+
 ```shell
 $> docker push taeregistry.azurecr.io/speed-test-scheduler:0.0.1
 ```
 
-What queue? KubeMQ!
--------------------
+## What queue? KubeMQ!
+
 At this point we could use whatever queue we want, but we have chosen to go for [KubeMQ](https://kubemq.io/). KubeMQ is a easy to use real-time scalable message queue, designed to support high volume messaging with low latency and efficient memory usage. It supports multiple messaging patterns, including real-time pub/sub, witch is what we are going to be using.
 
 ### Deploy KubeMQ and KubeMQ-dashboard
+
 There are many nice things about third-party applications, one of then is that many have deployed the same solution before. And in combination with docker, and easy sharing of docker-containers through container-registries, the deployment process is much easier then on a native setup. In this case the creators of KubeMQ have already created a docker image with all the necessary dependencies installed.
 
 There is a couple of ways we could deploy KubeMQ. One way is by using KubeMQ's ready made helm-chart, witch have all the recommended configuration for kubernetes. But since we are going to be looking at [Helm](https://helm.sh/) in a later section, we are going to do this the "native way".
@@ -41,7 +45,7 @@ This file configures both the KubeMQ-queue and a KubeMQ-dashboard. First lets ta
 
 ```yaml
 #
-apiVersion: apps/v1beta2
+apiVersion: apps/v1
     kind: StatefulSet
     metadata:
       name: kubemq-cluster
@@ -308,8 +312,8 @@ job.batch/speedtest-scheduler-manual-001 created
 
 ![KubeMQ Dashboard](images/kubemq-dashboard-event-sent.png)
 
-Configuring speedtest-logger to read events from the queue
-----------------------------------------------------------
+## Configuring speedtest-logger to read events from the queue
+
 The speedtest-logger has a hidden feature, it can run as a service if the config variable `singleRun` is set to false. In this mode speedtest-logger will connect to an KubeMQ-instance, and listen for events from the scheduler.
 
 Since we're no longer going to deploy something that is a single run job, creating a Kubernetes _Job_ is the wrong choice. Instead speedtest-logger is acting like a service, along the lines of speedtest-api, so we should instead use a _Deployment_. In addition we'll need to configure the KubeMQ-variables we ignored previously.
@@ -338,9 +342,9 @@ spec:
             - containerPort: 80
           env:
             - name: singleRun
-              value: "false"
+              value: 'false'
             - name: speedTestApiUrl
-              value: http://13.81.246.53 # Remember to update this to use your external
+              value: http://speedtest-api-service
             - name: KubeMQ_ServerAddress
               value: kubemq-cluster-node:50000 # Note we use the same service her as in the speedtest-scheduler
             - name: KubeMQ_Channel

@@ -47,8 +47,7 @@ If you want to read more about helm, I recommend the [docs](https://helm.sh/docs
 
 ```bash
 $ helm version
-Client: &version.Version{SemVer:"v2.11.0", GitCommit:"2e55dbe1fdb5fdb96b75ff144a339489417b146b", GitTreeState:"clean"}
-Server: &version.Version{SemVer:"v2.11.0", GitCommit:"2e55dbe1fdb5fdb96b75ff144a339489417b146b", GitTreeState:"clean"}
+version.BuildInfo{Version:"v3.0.3", GitCommit:"ac925eb7279f4a6955df663a0128044a8a6b7593", GitTreeState:"clean", GoVersion:"go1.13.6"}
 ```
 
 3. Install helm in your cluster by running: `helm init` (assuming RBAC is not enabled in your cluster)
