@@ -78,7 +78,7 @@ spec:
           ports:
             - containerPort: 80
           env:
-            - name: hostBasePath
+            - name: basePath
               value: /
 ```
 

@@ -50,15 +50,6 @@ $ helm version
 version.BuildInfo{Version:"v3.0.3", GitCommit:"ac925eb7279f4a6955df663a0128044a8a6b7593", GitTreeState:"clean", GoVersion:"go1.13.6"}
 ```
 
-3. Install helm in your cluster by running: `helm init` (assuming RBAC is not enabled in your cluster)
-
-```bash
-$ helm init
-$HELM_HOME has been configured at /home/shg/.helm.
-...
-Happy Helming!
-```
-
 ## Let's install something!
 
 We are going to install nginx-ingress by using the [helm chart](https://github.com/helm/charts/tree/master/stable/nginx-ingress).
@@ -110,62 +101,158 @@ All helm commands is described [here](https://helm.sh/docs/helm/#helm), but some
 
 Nginx-ingress in an [ingress-controllers](https://kubernetes.io/docs/concepts/services-networking/ingress-controllers/). An ingress-controller listens to changes in an kubernetes [Ingress] and apply them to the underlying proxy, in this case nginx. An [Ingress](https://kubernetes.io/docs/concepts/services-networking/ingress/) is a kubernetes resource that manages external access to a service inside the cluster. You can look at a Ingress as a routing rule, like so: "If the user navigates to hostname.com/tardis then redirect the user the the service named tardis-service`. Lets take our webpage as an example.
 
-## Want some more?
+### Create an ingress to speedtest-api and speedtest-web
 
-If you want to create an ingress, do the steps below, or jump to next section. We are going to use the nginx-ingress to host kibana in [section 6 - ELK](6-helm-and-elk).
+In a production environment we should place all our applications behind a proxy (nginx-ingress). We are going to pace the api under `/speedtest-api` and the webpage under `/`.
 
-### Create an ingress to kubemq-dashboard
+#### Expose speedtest-api on `https://yourname.westeurope.cloudapp.azure.com/speedtest-api`
 
-In a production environment we should place all our applications behind a proxy (nginx-ingress), but for now lets just take kubemq-dashboard as an example.
-
-1. First we need to change the a service kubemq-dashboard the be of type NodePort. This enables clients inside the cluster to reach the kubemq-dashboard.
-2. Go to ./speedtest-scheduler/Deployment/KubeMQ.yaml and change:
+1. First we need to change the speedtest-api service the be of type NodePort. This enables clients inside the cluster to reach the speedtest-api. Go to ./speedtest-api/Deployment/speedtest-api.yaml and change:
 
 ```yaml
+---
 kind: Service
 apiVersion: v1
 metadata:
-  name: kubemq-dashboard
+  name: speedtest-api-service
 spec:
   type: NodePort # <-- Change here!
   selector:
-    app: kubemq-dashboard
+    app: speedtest-api
   ports:
     - protocol: TCP
       port: 80
 ```
 
-3. Run `kubectl apply -f ./speedtest-scheduler/Deployment/KubeMQ.yaml`
-4. Then we create an Ingress that points to the service. Remember to update host.
+2. Now we need to configure speedtest-api to handle the new base path. Go to ./speedtest-api/Deployment/speedtest-api.yaml and change:
 
 ```yaml
-#ingress.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: speedtest-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: speedtest-api
+  template:
+    metadata:
+      labels:
+        app: speedtest-api
+    spec:
+      imagePullSecrets:
+        - name: regcred
+      containers:
+        - name: speedtest-api
+          image: k8s101registry.azurecr.io/speedtest-api:0.0.1
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 80
+          env:
+            - name: basePath
+              value: /speedtest-api # <-- Change here!
 
+ ---
+
+```
+
+3. Run `kubectl apply -f ./speedtest-api/Deployment/speedtest-api.yaml`, to apply the changes.
+4. Now we can create the Ingress. (Remember to update host).
+
+```yaml
+#speedtest-api-ingress.yaml
 apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
-  name: kubemq-dashboard
+  name: speedtest-api
   annotations:
-    nginx.ingress.kubernetes.io/rewrite-target: /$1
-    kubernetes.io/ingress.class:
-      nginx # This tells kubernetes that we want to use our nginx-ingress
+    kubernetes.io/ingress.class: nginx # This tells kubernetes that we want to use our nginx-ingress
 
-      # Needed because of the web page don't have a basepath config.
-    nginx.ingress.kubernetes.io/configuration-snippet: |
-      sub_filter '<base href="/">' '<base href="/kubemq/">';
 spec:
   rules:
-    - host: tardis.westeurope.cloudapp.azure.com # CHANGE HERE!
+    - host: yourhostname.westeurope.cloudapp.azure.com # CHANGE HERE!
       http:
         paths:
-          - path: /kubemq/?(.*) # The path we want to use
+          - path: /speedtest-api # The path we want to use
             backend:
-              serviceName: kubemq-dashboard # The service we want tha path to be redirected to
+              serviceName: speedtest-api-service # The service we want tha path to be redirected to
               servicePort: 80
 ```
 
-5. Run `kubectl apply -f ./ingress.yaml`
-6. Go to https://yourhostname.westeurope.cloudapp.azure.com/kubemq
+5. Run `kubectl apply -f ./speedtest-api-ingress.yaml`
+6. Now the speedtest-api is exposed through the nginx. You can find it here https://yourhostname.westeurope.cloudapp.azure.com/api/swagger/.
+
+#### Expose speedtest-web on `https://yourname.westeurope.cloudapp.azure.com/`
+
+1. To expose speedtest-web on `/`, we follow the same procedure as for speedtest-api. Let's start with the file ./speedtest-web/Deployment/speedtest-web.yaml and change the following:
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: speedtest-web
+spec:
+  selector:
+    matchLabels:
+      app: speedtest-web
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: speedtest-web
+    spec:
+      imagePullSecrets:
+        - name: regcred
+      containers:
+        - name: speedtest-web
+          image: k8s101registry.azurecr.io/speedtest-web:0.0.1
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 80
+          env:
+            - name: SpeedTestApiBase
+              value: https://yourhostname.westeurope.cloudapp.azure.com/speedtest-api/ # <-- CHANGE HERE!
+
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: speedtest-web-service
+spec:
+  type: NodePort # <-- Change here!
+  selector:
+    app: speedtest-web
+  ports:
+    - protocol: TCP
+      port: 80
+```
+
+2. Run `kubectl apply -f ./speedtest-api/Deployment/speedtest-api.yaml`.
+3. Then we have to create the speedtest-web-ingress:
+
+```yaml
+#speedtest-web-ingress.yaml
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: speedtest-web
+  annotations:
+    kubernetes.io/ingress.class: nginx # This tells kubernetes that we want to use our nginx-ingress
+
+spec:
+  rules:
+    - host: yourhostname.westeurope.cloudapp.azure.com # CHANGE HERE!
+      http:
+        paths:
+          - path: / # The path we want to use
+            backend:
+              serviceName: speedtest-web-service # The service we want tha path to be redirected to
+              servicePort: 80
+```
+
+4. Run `kubectl apply -f ./speedtest-api-ingress.yaml`
+5. Go to https://yourhostname.westeurope.cloudapp.azure.com/
 
 ## What now?
 
