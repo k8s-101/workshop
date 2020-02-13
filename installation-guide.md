@@ -18,10 +18,10 @@ Azure and C#
 ------------
 _All code examples will be given in .NET Core, and we'll create our Kubernetes cluster on Azure._
 
-### .NET Core 2.2 SDK (or any version newer than 2.1) and VS Code
-_If you already have .NET Core installed, you can check the version with `dotnet --version`. It should be at least version 2.1_
+### .NET Core 3.1 SDK and VS Code
+_If you already have .NET Core installed, you can check the version with `dotnet --version`._
 
-1. Install the [.NET Core 2.2 SDK](https://www.microsoft.com/net/download) (or any version newer than 2.1)
+1. Install the [.NET Core 3.1 SDK](https://www.microsoft.com/net/download)
 2. If you don't already have a preferred editor for C# code, grab a copy of [VS Code](https://code.visualstudio.com/). You'll also want to get the [C# extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode.csharp). Install it by pressing Ctrl+P, pasting `ext install ms-vscode.csharp` into the window and pressing enter.
 
 ![VS Code installation of csharp package](sections/images/vscode-csharp-ext.jpg)
