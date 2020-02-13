@@ -212,7 +212,7 @@ spec:
             - containerPort: 80
           env:
             - name: SpeedTestApiBase
-              value: https://yourhostname.westeurope.cloudapp.azure.com/speedtest-api/ # <-- CHANGE HERE!
+              value: /speedtest-api # <-- CHANGE HERE!
 
 ---
 kind: Service
