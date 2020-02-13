@@ -63,12 +63,14 @@ Great success! We measured a download and upload -speed, but failed to upload it
 
 _What's the deal with "Application started" and "Content root path"? speedtest-logger is actually implemented as a hosted service using [.NET Generic Host](https://docs.microsoft.com/en-us/aspnet/core/fundamentals/host/generic-host?view=aspnetcore-2.2), and we're forcing it to emulate a simple console program. This is totally overkill at this stage, but will probably make sense later in the workshop._
 
+_**Tip:** If you at some have trouble connecting to speedtest.net, you can configure the logger to use dummy data. This is done by setting useDummyData to `true` in `appsettings.json`._
+
 ### speedtest-api
 1. Navigate out of `/speedtest-logger` and again clone the codebase from GitHub with `git clone https://github.com/k8s-101/speedtest-api.git`.
 2. Navigate into the `/speedtest-api/SpeedTestApi`-folder, and run the solution with `dotnet run`.
 
 ```shell
-$> speedtest-api/SpeedTestApi> dotnet run
+$ speedtest-api/SpeedTestApi> dotnet run
 Hosting environment: Development
 Content root path: .../speedtest-api/SpeedTestApi
 Now listening on: https://localhost:5001
@@ -82,7 +84,7 @@ Application started. Press Ctrl+C to shut down.
 4. Try to run the speedtest-logger again from another terminal, keeping speedtest-api still running. This time upload should work.
 
 ```shell
-$> speedtest-logger/SpeedTestLogger> dotnet run
+$ speedtest-logger/SpeedTestLogger> dotnet run
 Starting SpeedTestLogger
 Finding best test servers
 Testing download speed
@@ -103,7 +105,7 @@ Let's keep speedtest-api running, while we get speedtest-web up and running in a
 2. Navigate into the `/speedtest-web/SpeedTestWeb`-folder, and run the solution with `dotnet run`.
 
 ```shell
-$> speedtest-api/SpeedTestApi> dotnet run
+$ speedtest-api/SpeedTestApi> dotnet run
 Hosting environment: Development
 Content root path: .../speedtest-api/SpeedTestApi
 Now listening on: https://localhost:5051
@@ -114,7 +116,7 @@ Application started. Press Ctrl+C to shut down.
 
 ![speedtest-web](images/speedtest-web-local-graph.jpg)
 
-_Wait, where did all the data in the graphs come from? When started locally, speedtest-api will populate it's database with some dummy-data, so we have something to display in the webpage. This won't happen if you run the application in production-mode, i.e. with the environment-variable `ASPNETCORE_ENVIRONMENT` set to `true`._
+_Wait, where did all the data in the graphs come from? When started locally, speedtest-api will populate it's database with some dummy-data, so we have something to display in the webpage. This won't happen if you run the application in production-mode, i.e. with the environment-variable `ASPNETCORE_ENVIRONMENT` set to anything other than `Development`._
 
 ### speedtest-scheduler
 We'll skip speedtest-scheduler for now, since running it requires setting up a third-party queue solution, and we're too lazy to do that on our local computer. For now you can pretend like it doesn't exist, but fear not, we'll return to speedtest-scheduler in part 4, [the third party queue](4-third-party-queue).
