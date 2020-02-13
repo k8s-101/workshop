@@ -39,7 +39,7 @@ Diving into dockerizing your own applications can be very confusing, if you don'
 Since .NET Core version 2.1, you can build an application with just `dotnet publish` from a folder containing a csproj-file for the application you want to publish. Previously, you would have to run `dotnet restore` first, in order to install dependencies like third-party libraries, but since 2.1, `dotnet publish` will restore and build your code if needed. Navigate into `/speedtest-logger/SpeedTestLogger` and try it out!
 
 ```shell
-$> speedtest-logger/SpeedTestLogger> dotnet publish --output ./PublishedApp --configuration Release
+$ speedtest-logger/SpeedTestLogger> dotnet publish --output ./PublishedApp --configuration Release
 Microsoft (R) Build Engine version 16.0.450+ga8dc7f1d34 for .NET Core
 Copyright (C) Microsoft Corporation. All rights reserved.
 
@@ -56,7 +56,7 @@ Let's have a quick look in `/PublishedApp`. Here you'll find all the .dll -files
 We can run the published speedtest-logger by invoking `SpeedTestLogger.dll` directly:
 
 ```shell
-$> speedtest-logger/SpeedTestLogger> dotnet ./PublishedApp/SpeedTestLogger.dll
+$ speedtest-logger/SpeedTestLogger> dotnet ./PublishedApp/SpeedTestLogger.dll
 Starting SpeedTestLogger
 Finding best test servers
 ...
@@ -83,19 +83,19 @@ A Dockerfile is a set of instructions that tells Docker how to build an image. I
 ### Finding an image to start with
 Microsoft publishes official images with the .NET Core SDK or runtime installed to [docker hub](https://hub.docker.com/_/microsoft-dotnet-core). Docker hub is a container registry, in the same way that [NuGet](https://www.nuget.org/) is a registry for .NET libraries and [npm](https://www.npmjs.com/) is a registry for a lot of things. You can find pre built images of different operating systems with tooling for programming environments like [openjdk](https://hub.docker.com/_/openjdk), [node](https://hub.docker.com/_/node) and [golang](https://hub.docker.com/_/golang). You can also find images with [bare linux distributions](https://hub.docker.com/_/alpine), if you're working with something really left-field.
 
-We're targeting .NET Core 2.1, so we'll be using the image `microsoft/dotnet:2.1-sdk`. To state this in our Dockerfile use the `FROM ... AS ...` statement.
+We're targeting .NET Core 3.1, so we'll be using the image `mcr.microsoft.com/dotnet/core/sdk:3.1`. To state this in our Dockerfile use the `FROM ... AS ...` statement.
 
 ```Dockerfile
-FROM microsoft/dotnet:2.1-sdk AS build-stage
+FROM mcr.microsoft.com/dotnet/core/sdk:3.1 AS build-stage
 ```
 
-By starting a section of our dockerfile with this statement, we're declaring that we'll base our container on the `dotnet` image from `microsoft` with version `2.1-sdk`.
+By starting a section of our dockerfile with this statement, we're declaring that we'll base our container on the `dotnet/core/sdk` image from `mcr.microsoft.com` with version `3.1`.
 
 ### Copying our code into the container
 Before copying any code into our container, we should declare in what directory we're working inside the container. This is done with the `WORKDIR`-command.
 
 ```Dockerfile
-FROM microsoft/dotnet:2.1-sdk AS build-stage
+FROM mcr.microsoft.com/dotnet/core/sdk:3.1 AS build-stage
 WORKDIR /SpeedTestLogger
 ```
 
@@ -106,7 +106,7 @@ _**A quick work about contexts:** Next we need to understand how Docker moved fi
 With the context out of the way, we can start writing out first `COPY`-statement.
 
 ```Dockerfile
-FROM microsoft/dotnet:2.1-sdk AS build-stage
+FROM mcr.microsoft.com/dotnet/core/sdk:3.1 AS build-stage
 WORKDIR /SpeedTestLogger
 
 COPY /SpeedTestLogger ./
@@ -146,7 +146,7 @@ RUN dotnet publish \
 This will make the version control diff nicer when somebody decides to change what parameters to use.
 
 ### Making the build multi-staged
-Up until now, we've been using the `microsoft/dotnet:2.1-sdk` image. When running in production, we probably don't want to drag the entire .NET Core SDK around everywhere. Fortunately, Microsoft also publishes the runtime version of .NET Core as a ready-to-use image called `microsoft/dotnet:2.1-aspnetcore-runtime`.
+Up until now, we've been using the `mcr.microsoft.com/dotnet/core/sdk:3.1` image. When running in production, we probably don't want to drag the entire .NET Core SDK around everywhere. Fortunately, Microsoft also publishes the runtime version of .NET Core as a ready-to-use image called `mcr.microsoft.com/dotnet/core/aspnet:3.1`.
 
 Using several images as part of the same Dockerfile, is called creating a multi-stage build. We can use a lot of different images to build our code, but only the last image will be kept as our final built image.
 
@@ -157,7 +157,7 @@ RUN dotnet publish \
     --output ./PublishedApp \
     --configuration Release
 
-FROM microsoft/dotnet:2.1-aspnetcore-runtime
+FROM mcr.microsoft.com/dotnet/core/aspnet:3.1
 LABEL repository="github.com/k8s-101/speedtest-logger"
 WORKDIR /SpeedTestLogger
 ```
@@ -188,7 +188,7 @@ ENTRYPOINT ["dotnet", "SpeedTestLogger.dll"]
 By now your `Dockerfile` should look something like this:
 
 ```Dockerfile
-FROM microsoft/dotnet:2.1-sdk AS build-stage
+FROM mcr.microsoft.com/dotnet/core/sdk:3.1 AS build-stage
 WORKDIR /SpeedTestLogger
 
 COPY /SpeedTestLogger ./
@@ -196,7 +196,7 @@ RUN dotnet publish \
     --output ./PublishedApp \
     --configuration Release
 
-FROM microsoft/dotnet:2.1-aspnetcore-runtime
+FROM mcr.microsoft.com/dotnet/core/aspnet:3.1
 LABEL repository="github.com/k8s-101/speedtest-logger"
 WORKDIR /SpeedTestLogger
 
@@ -206,7 +206,7 @@ ENTRYPOINT ["dotnet", "SpeedTestLogger.dll"]
 
 Navigate to the `speedtest-logger` folder and run `docker build` with the following arguments:
 ```shell
-$> docker build -f Dockerfile -t speed-test-logger:0.0.1 ./
+$ speedtest-logger> docker build -f Dockerfile -t speed-test-logger:0.0.1 ./
 Sending build context to Docker daemon  328.2kB
 Step 1/9 : FROM microsoft/dotnet:2.1-sdk AS build-stage
  ---> d81b18feaa95
@@ -249,7 +249,7 @@ Successfully tagged speed-test-logger:0.0.1
 
 Let's test our new image with `docker run`:
 ```shell
-$> docker run -it speed-test-logger:0.0.1
+$ speedtest-logger> docker run -it speed-test-logger:0.0.1
 Starting SpeedTestLogger
 Finding best test servers
 Testing download speed
@@ -279,10 +279,10 @@ Copyright (C) Microsoft Corporation. All rights reserved.
 ...
 ```
 
-We can use another `COPY` and `RUN` statement to ensure that Docker only restores packages when we change `SpeedTestLogger.csproj`, since this file is the only place we're declaring which dependencies we're using. Update your Dockerfile with the following section and run `docker build` again:
+We can use another `COPY` and `RUN` statement to ensure that Docker only restores packages when we change `SpeedTestLogger.csproj`, since this file is the only place we're declaring which dependencies we're using. Update your Dockerfile with the following section and run `docker build` twice again, with a small change to one of the code files in-between:
 
 ```Dockerfile
-FROM microsoft/dotnet:2.1-sdk AS build-stage
+FROM mcr.microsoft.com/dotnet/core/sdk:3.1 AS build-stage
 WORKDIR /SpeedTestLogger
 
 COPY /SpeedTestLogger/SpeedTestLogger.csproj ./
@@ -294,7 +294,7 @@ RUN dotnet publish \
     --configuration Release \
     --no-restore
 
-FROM microsoft/dotnet:2.1-aspnetcore-runtime
+FROM mcr.microsoft.com/dotnet/core/aspnet:3.1
 LABEL repository="github.com/k8s-101/speedtest-logger"
 WORKDIR /SpeedTestLogger
 
@@ -321,7 +321,7 @@ Copyright (C) Microsoft Corporation. All rights reserved.
 ...
 ```
 
-Notice how we're no longer spending any time restoring unchanged packages? Success!
+Notice how we're no longer spending any time restoring unchanged packages the second time we build? Success!
 
 _Whether or not we can benefit from improved caching usually depends on other factors as well. If we mostly run `docker build` on a build server, and it doesn't support Docker caching between builds, we won't see any improvements._
 
