@@ -29,6 +29,7 @@ Under _Basic_:
 - Resource group should be _k8s-101_.
 - The Kubernetes cluster name should be short and unique, for example {your initials}cluster. We'll be using `taecluster` for the duration of this workshop, but you should use your
 - Region should be _(Europe) West Europe_.
+- Use the default Kubernetes version. This is currently _1.14.8_, and not _1.12.7_ as shown in the image below.
 
 ![Creating AKS](images/aks-basic-settings.jpg)
 
@@ -167,7 +168,7 @@ Remember the mysterious "imagePullSecrets: - name: regcred" section from `speedt
 Since we're using a private container registry, we'll need to create a _secret_ in our cluster with authentication information for accessing the registry. You can du this with the following command:
 
 ```shell
-&> kubectl create secret docker-registry regcred --docker-server=k8s101registry.azurecr.io --docker-username=k8s101registry --docker-password={your password here} --docker-email=tae@computas.com
+&> kubectl create secret docker-registry regcred --docker-server={your login server} --docker-username={your user} --docker-password={your password} --docker-email=tae@computas.com
 ```
 
 **Note:** Remember to use your registry _login address_, _username_ and _password_ when running the command above.
@@ -178,29 +179,28 @@ Since we're using a private container registry, we'll need to create a _secret_ 
 
 ### Kubernetes Dashboard UI
 
-To get an overview of your cluster, you can open the Kubernetes dashboard. The Dashboard UI is not deployed by default. To deploy it, run the following command:
-
-``kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.0.0-beta8/aio/deploy/recommended.yam`
-
-You can access Dashboard using the kubectl command-line tool by running the following command:
+To get an overview of your cluster, you can open the Kubernetes dashboard. The [Dashboard UI](https://github.com/kubernetes/dashboard) is not deployed by default, but we can deploy and open it with the `az aks browse` command.
 
 ```shell
-$> kubectl proxy
-Starting to serve on 127.0.0.1:8001
+$> az aks browse --resource-group k8s-101 --name taecluster
+Merged "taecluster" as current context in /tmp/tmpl2371kjs
+Proxy running on http://127.0.0.1:8001/
+Press CTRL+C to close the tunnel...
+Opening in existing browser session.
 ```
 
-Now you should be able to visit the [Kubernetes dashboard](http://localhost:8001/api/v1/namespaces/kubernetes-dashboard/services/https:kubernetes-dashboard:/proxy/) in your browser.
+This should open the dashboard in your browser automatically. Alternatively you can open [http://127.0.0.1:8001/#!/overview?namespace=default](http://127.0.0.1:8001/#!/overview?namespace=default)
 
 ![Kubernetes dashboard](images/k8s-empty-dashboard.png)
 
-At the moment there's nothing interesting there, after all we haven't deployed anything to the cluster yet, but we'll come back to this page later, so keep the terminal with `kubectl proxy` running.
+At the moment there's nothing interesting there, after all we haven't deployed anything to the cluster yet, but we'll come back to this page later, so keep the terminal with `az aks browse` running.
 
 ## Deploying speedtest-api
 
 Now that we've got an connection to our cluster, it's time to try to deploy speedtest-api. Move into the `/speedtest-api`-folder, and apply `speedtest-api.yaml` with the following command.
 
 ```shell
-$> speedtest-api> kubectl apply -f Deployment/speedtest-api.yaml
+$ speedtest-api> kubectl apply -f Deployment/speedtest-api.yaml
 deployment.apps/speedtest-api created
 service/speedtest-api-service created
 ```
@@ -225,7 +225,7 @@ Note that speedtest-api-service has been assigned an external endpoint. Open it 
 
 ## Deploying speedtest-web
 
-Let's deploy speedtest-web as well. The kubernetes configuration is very similar to speedtest-api, and is located in `/speedtest-web/Deployment/speedtest-web.yaml`.
+Let's deploy speedtest-web as well. The Kubernetes configuration is very similar to speedtest-api, and is located in `/speedtest-web/Deployment/speedtest-web.yaml`.
 
 This time we only have to look at the _Service_:
 
@@ -259,7 +259,7 @@ spec:
 
 Again we'll need to update the image with the correct container registry. We also need to configure the webpage to use the address of speedtest-api on the cluster as SpeedTestApiBase, i.e. you'll need to change `http://13.81.246.53` to the external address of your speedtest-api-service.
 
-Save the updated `speedtest-web.yaml` and apply it to kubernetes:
+Save the updated `speedtest-web.yaml` and apply it to Kubernetes:
 
 ```shell
 $ speedtest-web> kubectl apply -f Deployment/speedtest-web.yaml
@@ -275,7 +275,7 @@ Just as with speedtest-api, we're now viewing the version of speedtest-web deplo
 
 ## Running speedtest-logger as a job
 
-Both speedtest-api and speedtest-web has been deployed as a _Deployment_ and _Service_, but this time we'll deploy speedtest-logger as a _Job_.
+Both speedtest-api and speedtest-web has been deployed as a _Deployment_ and _Service_, but this time we'll deploy speedtest-logger as a _Job_ defined in `speedtest-logger.yaml`.
 
 _Jobs_ are an Kubernetes object that is applied, and then runs once. They're useful for batch-processing jobs, database migrations, and most programs that you run once as a console application. Although this will soon change, we'll start out by deploying speedtest-logger as a _Job_.
 
@@ -310,7 +310,7 @@ spec:
 This time, in addition to updating the container registry, we'll ensure that `singleRun` is configured to `true`, and that the value for `speedTestApiUrl` is the same as the `Name` of the `Service` in `speedtest-web.yaml`. For now we can ignore the KubeMQ-related values, they'll be used in the next section. Then we're ready to apply the job.
 
 ```shell
-$ speedtest-logger> kubectl apply -f .\Deployment\speedtest-logger.yaml
+$ speedtest-logger> kubectl apply -f Deployment/speedtest-logger.yaml
 job.batch/speedtest-logger created
 ```
 

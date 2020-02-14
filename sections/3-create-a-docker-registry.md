@@ -34,7 +34,7 @@ You'll also need to enable _Admin user_, and note your username and password und
 
 ![Admin user and password](images/k8s101registry-admin-user.jpg)
 
-Now you should be able to login to your container registry using `docker login`.
+Now you should be able to login to your container registry using `docker login`, and the _Admin user_ username and password.
 
 ```shell
 $> docker login k8s101registry.azurecr.io
