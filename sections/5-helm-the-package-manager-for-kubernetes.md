@@ -276,7 +276,7 @@ $ speedtest-web> kubectl apply -f Deployment/speedtest-web-ingress.yaml
 
 Fingers crossed, speedtest-web will be available at [http://yourdnslabel.westeurope.cloudapp.azure.com/client/index.html](http://yourdnslabel.westeurope.cloudapp.azure.com/client/index.html).
 
-<marquee><h1>🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉 Congratulations! 🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉</h1></marquee>
+<marquee><h1>🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉 Congratulations! You are finished 🏆 🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉</h1></marquee>
 
 ## What now?
 
