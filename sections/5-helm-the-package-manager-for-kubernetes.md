@@ -42,50 +42,13 @@ If you want to read more about helm, I recommend the [docs](https://helm.sh/docs
 
 ## Installing Helm
 
-1. Install Helm client by following the [installing-helm-guide](https://helm.sh/docs/using_helm/#installing-helm).
-2. Test that your installation in successful.
+1. Install Helm client by following the [installing-helm-guide](https://helm.sh/docs/intro/install/). Remember to [initialize a helm chart repository](https://helm.sh/docs/intro/quickstart/#initialize-a-helm-chart-repository) and run `helm repo update`.
+2. Then test that your installation in successful by running `helm version`.
 
-```bash
-$ helm version
+```shell
+$> helm version
 version.BuildInfo{Version:"v3.0.3", GitCommit:"ac925eb7279f4a6955df663a0128044a8a6b7593", GitTreeState:"clean", GoVersion:"go1.13.6"}
 ```
-
-## Let's install something!
-
-We are going to install nginx-ingress by using the [helm chart](https://github.com/helm/charts/tree/master/stable/nginx-ingress).
-
-1. Create a folder named nginx-ingress.
-2. Inside that folder create a file named values.yaml. This is the file we use to override the default settings. The default settings for this chart you can find [here](https://github.com/helm/charts/tree/master/stable/nginx-ingress).
-
-```yaml
-#values.yaml
-
-# The only value we want to override is that we don't want to create rbac
-rbac:
-  create: false
-```
-
-3. Install nginx-ingress by:
-
-```bash
-$ helm upgrade --install nginx stable/nginx-ingress --values values.yaml
-...
-A list of all deployed resources are listed, with some useful notes...
-Happy helming!
-```
-
-This will install the chart **stable/nginx-ingress**, create a release named **nginx** and override the default values with values.yaml.
-
-### Lets create our own hostname for the nginx-ingress
-
-1. Go to https://portal.azure.com/.
-2. Find the resource group for the cluster. (Not the one you specified, but the one automatically created my azure.)
-3. In this resource you will find some resources of type **Public ip address**. Go through then until you find the one for nginx-ingress. It is normally tagged with the name of the kubernetes service **nginx-nginx-ingress-controller**.
-4. In the left meny click **Configuration**, then type inn your **Dns name label**, and hit save.
-
-![KubeMQ Dashboard](images/azure-portal-dns.png)
-
-5. Now you can reach your nginx-ingress my http://yourname.westeurope.cloudapp.azure.com. (For now it wil give you a 404).
 
 ### Useful helm commands
 
@@ -97,6 +60,48 @@ All helm commands is described [here](https://helm.sh/docs/helm/#helm), but some
 - [helm status](https://helm.sh/docs/helm/#helm-status) - displays the status of the named release
 - [helm upgrade](https://helm.sh/docs/helm/#helm-upgrade) - upgrade a helm release
 
+## Let's install something!
+
+We are going to install nginx-ingress by using the [helm chart](https://github.com/helm/charts/tree/master/stable/nginx-ingress).
+
+1. Create a folder named `nginx-ingress`.
+2. Inside that folder create a file named `values.yaml`. This is the file we use to override the default settings. The default settings for this chart you can find [here](https://github.com/helm/charts/tree/master/stable/nginx-ingress).
+
+```yaml
+#values.yaml
+
+# The only value we want to override is that we don't want to create rbac
+rbac:
+  create: false
+```
+
+3. Install nginx-ingress with `helm upgrade`.
+
+```shell
+$ nginx-ingress> helm upgrade --install nginx stable/nginx-ingress --values values.yaml
+
+Release "nginx" does not exist. Installing it now.
+...
+```
+
+This will install the chart **stable/nginx-ingress**, create a release named **nginx** and override the default values with values.yaml.
+
+### Lets create a hostname for the nginx-ingress
+
+Go to the [Azure portal](https://portal.azure.com/.) and find the resource group containing the individual resources running your Kubernetes cluster. It has a strange automatically generated name, usally starting with "MC_".
+
+![](images/other-resource-group.png)
+
+Find the resource of type **Public ip address** that is tagged with `default/nginx-nginx-ingress-controller`
+
+![](images/nginx-nginx-ingress-controller.png)
+
+In the left menu click **Configuration**. Pick a suitable DNS-name ("tardis" is used as an example here), and fill in the **Dns name label** field. Then hit save.
+
+![](images/azure-portal-dns.png)
+
+Now you can reach your nginx-ingress from [yourdnslabel.westeurope.cloudapp.azure.com](http://yourdnslabel.westeurope.cloudapp.azure.com). (For now it wil give you a 404).
+
 ## Ingress and ingress-controllers
 
 Nginx-ingress in an [ingress-controllers](https://kubernetes.io/docs/concepts/services-networking/ingress-controllers/). An ingress-controller listens to changes in an kubernetes [Ingress] and apply them to the underlying proxy, in this case nginx. An [Ingress](https://kubernetes.io/docs/concepts/services-networking/ingress/) is a kubernetes resource that manages external access to a service inside the cluster. You can look at a Ingress as a routing rule, like so: "If the user navigates to hostname.com/tardis then redirect the user the the service named tardis-service`. Lets take our webpage as an example.
@@ -105,9 +110,9 @@ Nginx-ingress in an [ingress-controllers](https://kubernetes.io/docs/concepts/se
 
 In a production environment we should place all our applications behind a proxy (nginx-ingress). We are going to pace the api under `/speedtest-api` and the webpage under `/`.
 
-#### Expose speedtest-api on `https://yourname.westeurope.cloudapp.azure.com/speedtest-api`
+#### Expose the speedtest-api from yourdnslabel.westeurope.cloudapp.azure.com/backend
 
-1. First we need to change the speedtest-api service the be of type NodePort. This enables clients inside the cluster to reach the speedtest-api. Go to ./speedtest-api/Deployment/speedtest-api.yaml and change:
+First we need to change the speedtest-api service the be of type NodePort. This enables clients inside the cluster to reach the speedtest-api. Go to ./speedtest-api/Deployment/speedtest-api.yaml and change:
 
 ```yaml
 ---
@@ -151,41 +156,48 @@ spec:
             - containerPort: 80
           env:
             - name: basePath
-              value: /speedtest-api # <-- Change here!
-
- ---
-
+              value: /backend # <-- Change here!
 ```
 
-3. Run `kubectl apply -f ./speedtest-api/Deployment/speedtest-api.yaml`, to apply the changes.
-4. Now we can create the Ingress. (Remember to update host).
+Run `kubectl apply`, to apply the changes.
+
+```shell
+$ speedtest-api> kubectl apply -f Deployment/speedtest-api.yaml
+```
+
+Now we can create the Ingress. Create a new file called `speedtest-api-ingress.yaml` and add the following (Remember to update yourdnslabel in the host-setting).
 
 ```yaml
-#speedtest-api-ingress.yaml
 apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
   name: speedtest-api
   annotations:
     kubernetes.io/ingress.class: nginx # This tells kubernetes that we want to use our nginx-ingress
-
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
 spec:
   rules:
-    - host: yourhostname.westeurope.cloudapp.azure.com # CHANGE HERE!
-      http:
-        paths:
-          - path: /speedtest-api # The path we want to use
-            backend:
-              serviceName: speedtest-api-service # The service we want tha path to be redirected to
-              servicePort: 80
+  - host: yourdnslabel.westeurope.cloudapp.azure.com # CHANGE HERE!
+  - http:
+      paths:
+      - backend:
+          serviceName: speedtest-api-service
+          servicePort: 80
+        path: /backend(/|$)(.*)
 ```
 
-5. Run `kubectl apply -f ./speedtest-api-ingress.yaml`
-6. Now the speedtest-api is exposed through the nginx. You can find it here https://yourhostname.westeurope.cloudapp.azure.com/api/swagger/.
+Then apply the new ingress for speedtest-api to your cluster.
 
-#### Expose speedtest-web on `https://yourname.westeurope.cloudapp.azure.com/`
+```shell
+$ speedtest-api> kubectl apply -f Deployment/speedtest-api-ingress.yaml
+```
 
-1. To expose speedtest-web on `/`, we follow the same procedure as for speedtest-api. Let's start with the file ./speedtest-web/Deployment/speedtest-web.yaml and change the following:
+Now the speedtest-api is exposed through the nginx. Test it out by visiting [http://yourdnslabel.westeurope.cloudapp.azure.com/speedtest-api/swagger](http://yourdnslabel.westeurope.cloudapp.azure.com/speedtest-api/swagger).
+
+#### Expose speedtest-web from yourdnslabel.westeurope.cloudapp.azure.com/client
+
+To expose speedtest-web on `/`, we'll follow the same procedure as for speedtest-api. Let's start with opening the file `speedtest-web/Deployment/speedtest-web.yaml` and change the following:
 
 ```yaml
 apiVersion: apps/v1
@@ -212,7 +224,7 @@ spec:
             - containerPort: 80
           env:
             - name: SpeedTestApiBase
-              value: /speedtest-api # <-- CHANGE HERE!
+              value: /backend # <-- CHANGE HERE!
 
 ---
 kind: Service
@@ -228,31 +240,41 @@ spec:
       port: 80
 ```
 
-2. Run `kubectl apply -f ./speedtest-api/Deployment/speedtest-api.yaml`.
-3. Then we have to create the speedtest-web-ingress:
+Again run `kubectl apply` to apply the changes to the cluster.
+
+```shell
+$ speedtest-web> kubectl apply -f Deployment/speedtest-web.yaml
+```
+
+As before, create a new file called `speedtest-web-ingress.yaml` and add an ingress configuration, quite similar to the one for speedtest-api.
 
 ```yaml
-#speedtest-web-ingress.yaml
 apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
   name: speedtest-web
   annotations:
     kubernetes.io/ingress.class: nginx # This tells kubernetes that we want to use our nginx-ingress
-
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
 spec:
   rules:
-    - host: yourhostname.westeurope.cloudapp.azure.com # CHANGE HERE!
-      http:
-        paths:
-          - path: / # The path we want to use
-            backend:
-              serviceName: speedtest-web-service # The service we want tha path to be redirected to
-              servicePort: 80
+  - host: yourdnslabel.westeurope.cloudapp.azure.com # CHANGE HERE!
+  - http:
+      paths:
+      - backend:
+          serviceName: speedtest-web-service
+          servicePort: 80
+        path: /client(/|$)(.*)
 ```
 
-4. Run `kubectl apply -f ./speedtest-api-ingress.yaml`
-5. Go to https://yourhostname.westeurope.cloudapp.azure.com/
+Finally apply the new ingress for speedtest-web.
+
+```shell
+$ speedtest-web> kubectl apply -f Deployment/speedtest-web-ingress.yaml
+```
+
+Fingers crossed, speedtest-web will be available at [http://yourdnslabel.westeurope.cloudapp.azure.com/client/index.html](http://yourdnslabel.westeurope.cloudapp.azure.com/client/index.html).
 
 ## What now?
 
