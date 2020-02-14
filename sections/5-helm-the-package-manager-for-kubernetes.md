@@ -88,7 +88,7 @@ This will install the chart **stable/nginx-ingress**, create a release named **n
 
 ### Lets create a hostname for the nginx-ingress
 
-Go to the [Azure portal](https://portal.azure.com/.) and find the resource group containing the individual resources running your Kubernetes cluster. It has a strange automatically generated name, usally starting with "MC_".
+Go to the [Azure portal](https://portal.azure.com/.) and find the resource group containing the individual resources running your Kubernetes cluster. It has a strange automatically generated name, usally starting with "MC\_".
 
 ![](images/other-resource-group.png)
 
@@ -174,17 +174,17 @@ metadata:
   name: speedtest-api
   annotations:
     kubernetes.io/ingress.class: nginx # This tells kubernetes that we want to use our nginx-ingress
-    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+    nginx.ingress.kubernetes.io/ssl-redirect: 'false'
     nginx.ingress.kubernetes.io/rewrite-target: /$2
 spec:
   rules:
-  - host: yourdnslabel.westeurope.cloudapp.azure.com # CHANGE HERE!
-  - http:
-      paths:
-      - backend:
-          serviceName: speedtest-api-service
-          servicePort: 80
-        path: /backend(/|$)(.*)
+    - host: yourdnslabel.westeurope.cloudapp.azure.com # CHANGE HERE!
+      http:
+        paths:
+          - backend:
+              serviceName: speedtest-api-service
+              servicePort: 80
+            path: /backend(/|$)(.*)
 ```
 
 Then apply the new ingress for speedtest-api to your cluster.
@@ -255,17 +255,17 @@ metadata:
   name: speedtest-web
   annotations:
     kubernetes.io/ingress.class: nginx # This tells kubernetes that we want to use our nginx-ingress
-    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+    nginx.ingress.kubernetes.io/ssl-redirect: 'false'
     nginx.ingress.kubernetes.io/rewrite-target: /$2
 spec:
   rules:
-  - host: yourdnslabel.westeurope.cloudapp.azure.com # CHANGE HERE!
-  - http:
-      paths:
-      - backend:
-          serviceName: speedtest-web-service
-          servicePort: 80
-        path: /client(/|$)(.*)
+    - host: yourdnslabel.westeurope.cloudapp.azure.com # CHANGE HERE!
+      http:
+        paths:
+          - backend:
+              serviceName: speedtest-web-service
+              servicePort: 80
+            path: /client(/|$)(.*)
 ```
 
 Finally apply the new ingress for speedtest-web.
