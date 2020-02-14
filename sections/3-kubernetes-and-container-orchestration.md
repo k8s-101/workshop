@@ -307,7 +307,7 @@ spec:
       restartPolicy: OnFailure
 ```
 
-This time, in addition to updating the container registry, we'll ensure that `singleRun` is configured to `true`, and that the value for `speedTestApiUrl` is the same as the `Name` of the `Service` in `speedtest-web.yaml`. For now we can ignore the KubeMQ-related values, they'll be used in the next section. Then we're ready to apply the job.
+This time, in addition to updating the container registry, we'll ensure that `singleRun` is configured to `true`, and that the value for `speedTestApiUrl` is the same as the `Name` of the `Service` in `speedtest-api.yaml`. For now we can ignore the KubeMQ-related values, they'll be used in the next section. Then we're ready to apply the job.
 
 ```shell
 $ speedtest-logger> kubectl apply -f Deployment/speedtest-logger.yaml
