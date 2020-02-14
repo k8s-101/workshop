@@ -1,5 +1,7 @@
 # [Index](index) > ELK <3 Helm
 
+**This section is Deprecated :(**
+
 _In this section, we'll install ELK, and configure centralized logging of our speedtest system._
 
 ## Install ELK?
@@ -145,4 +147,5 @@ This will create a release named elk in the namespace logz.
 ![Kibana](images/kibana-logs.png)
 
 ## What now?
+
 If you have gotten this far, contact Teodor and Simen for more ideas to play with on your cluster.

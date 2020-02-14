@@ -276,6 +276,8 @@ $ speedtest-web> kubectl apply -f Deployment/speedtest-web-ingress.yaml
 
 Fingers crossed, speedtest-web will be available at [http://yourdnslabel.westeurope.cloudapp.azure.com/client/index.html](http://yourdnslabel.westeurope.cloudapp.azure.com/client/index.html).
 
+<marquee><h1>🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉 Congratulations! 🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉</h1></marquee>
+
 ## What now?
 
-Helm makes installing third-party software on Kubernetes easier, and in the next section we'll use Helm to [install the ELK-stack](6-helm-and-elk) and monitor our system.
+If you have gotten this far, contact Teodor and Simen for more ideas to play with on your cluster.
